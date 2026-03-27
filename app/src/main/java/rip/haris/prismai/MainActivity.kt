@@ -4,11 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import rip.haris.prismai.presentation.theme.PrismAITheme
+import rip.haris.prismai.presentation.ui.screens.chat.ChatScreen
 import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
 import rip.haris.prismai.presentation.viewmodel.LoginViewModel
 
@@ -20,11 +19,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PrismAITheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LoginScreen(
-                        viewModel = loginViewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val loginState by loginViewModel.state.collectAsState()
+
+                if (loginState.isLoggedIn) {
+                    ChatScreen()
+                } else {
+                    LoginScreen(viewModel = loginViewModel)
                 }
             }
         }

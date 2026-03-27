@@ -34,7 +34,16 @@ class LoginViewModel : ViewModel() {
             return
         }
 
-        _state.update { it.copy(emailError = null, isLoading = true) }
+        if (email != VALID_EMAIL) {
+            _state.update { it.copy(emailError = "Account not found") }
+            return
+        }
+
+        _state.update { it.copy(emailError = null, isLoggedIn = true) }
+    }
+
+    companion object {
+        private const val VALID_EMAIL = "test@haris.rip"
     }
 
     fun onGoogleSignIn() {
