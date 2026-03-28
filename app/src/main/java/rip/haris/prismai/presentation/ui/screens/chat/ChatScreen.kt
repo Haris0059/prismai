@@ -12,26 +12,32 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import rip.haris.prismai.presentation.ui.screens.chat.components.ChatInputBar
+import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chat.components.MessageBubble
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelBottomSheet
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelSelectorButton
@@ -48,7 +54,29 @@ fun ChatScreen(modifier: Modifier = Modifier) {
     var inputText by remember { mutableStateOf("") }
     var selectedModel by remember { mutableStateOf("Opus 4.6") }
     var showModelSheet by remember { mutableStateOf(false) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
+    val recentChats = remember {
+        (1..8).map { "Sample #$it" }
+    }
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            DrawerContent(
+                recentChats = recentChats,
+                onNewChat = {
+                    messages.clear()
+                    inputText = ""
+                    scope.launch { drawerState.close() }
+                },
+                onRecentChatClick = {
+                    scope.launch { drawerState.close() }
+                }
+            )
+        }
+    ) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -60,10 +88,10 @@ fun ChatScreen(modifier: Modifier = Modifier) {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Open drawer"
                         )
                     }
                 },
@@ -141,6 +169,7 @@ fun ChatScreen(modifier: Modifier = Modifier) {
             }
         }
     }
+    } // ModalNavigationDrawer end
 
     if (showModelSheet) {
         ModelBottomSheet(
