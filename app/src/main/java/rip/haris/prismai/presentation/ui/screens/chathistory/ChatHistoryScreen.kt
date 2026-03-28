@@ -36,6 +36,7 @@ import rip.haris.prismai.presentation.viewmodel.ChatHistoryViewModel
 fun ChatHistoryScreen(
     viewModel: ChatHistoryViewModel,
     onOpenDrawer: () -> Unit,
+    onNewChat: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
@@ -68,7 +69,7 @@ fun ChatHistoryScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onOpenDrawer,
+                onClick = onNewChat,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)

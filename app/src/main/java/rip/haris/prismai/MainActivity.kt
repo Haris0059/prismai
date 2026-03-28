@@ -96,7 +96,11 @@ class MainActivity : ComponentActivity() {
                             )
                             "chatHistory" -> ChatHistoryScreen(
                                 viewModel = chatHistoryViewModel,
-                                onOpenDrawer = { scope.launch { drawerState.open() } }
+                                onOpenDrawer = { scope.launch { drawerState.open() } },
+                                onNewChat = {
+                                    chatViewModel.onNewChat()
+                                    currentScreen = "chat"
+                                }
                             )
                             else -> ChatScreen(
                                 viewModel = chatViewModel,
