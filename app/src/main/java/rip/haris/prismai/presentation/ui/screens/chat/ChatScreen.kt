@@ -26,6 +26,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -48,11 +49,18 @@ import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, openDrawer: Boolean = false, onDrawerOpened: () -> Unit = {}, modifier: Modifier = Modifier) {
     val chatState by viewModel.state.collectAsState()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = if (openDrawer) DrawerValue.Open else DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(openDrawer) {
+        if (openDrawer) {
+            drawerState.open()
+            onDrawerOpened()
+        }
+    }
 
     val recentChats = remember {
         (1..8).map { "Sample #$it" }

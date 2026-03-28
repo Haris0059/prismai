@@ -33,13 +33,17 @@ class MainActivity : ComponentActivity() {
                 val loginState by loginViewModel.state.collectAsState()
                 var showChatHistory by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
+                var openDrawer by remember { mutableStateOf(false) }
 
                 if (!loginState.isLoggedIn) {
                     LoginScreen(viewModel = loginViewModel)
                 } else if (showSettings) {
                     SettingsScreen(
                         viewModel = settingsViewModel,
-                        onBackToChat = { showSettings = false },
+                        onBackToChat = {
+                            openDrawer = true
+                            showSettings = false
+                        },
                         onLogout = {
                             showSettings = false
                             loginViewModel.onLogout()
@@ -54,7 +58,9 @@ class MainActivity : ComponentActivity() {
                     ChatScreen(
                         viewModel = chatViewModel,
                         onNavigateToChatHistory = { showChatHistory = true },
-                        onNavigateToSettings = { showSettings = true }
+                        onNavigateToSettings = { showSettings = true },
+                        openDrawer = openDrawer,
+                        onDrawerOpened = { openDrawer = false }
                     )
                 }
             }
