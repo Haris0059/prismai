@@ -24,12 +24,10 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,19 +40,12 @@ import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chat.components.MessageBubble
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelBottomSheet
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelSelectorButton
-
-data class ChatMessage(
-    val text: String,
-    val isUser: Boolean
-)
+import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(modifier: Modifier = Modifier) {
-    val messages = remember { mutableStateListOf<ChatMessage>() }
-    var inputText by remember { mutableStateOf("") }
-    var selectedModel by remember { mutableStateOf("Opus 4.6") }
-    var showModelSheet by remember { mutableStateOf(false) }
+fun ChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
+    val chatState by viewModel.state.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -69,8 +60,7 @@ fun ChatScreen(modifier: Modifier = Modifier) {
             DrawerContent(
                 recentChats = recentChats,
                 onNewChat = {
-                    messages.clear()
-                    inputText = ""
+                    viewModel.onNewChat()
                     scope.launch { drawerState.close() }
                 },
                 onRecentChatClick = {
@@ -85,8 +75,8 @@ fun ChatScreen(modifier: Modifier = Modifier) {
             CenterAlignedTopAppBar(
                 title = {
                     ModelSelectorButton(
-                        selectedModel = selectedModel,
-                        onClick = { showModelSheet = true }
+                        selectedModel = chatState.selectedModel,
+                        onClick = { viewModel.onShowModelSheet(true) }
                     )
                 },
                 navigationIcon = {
@@ -108,22 +98,10 @@ fun ChatScreen(modifier: Modifier = Modifier) {
         },
         bottomBar = {
             ChatInputBar(
-                inputText = inputText,
-                onInputChange = { inputText = it },
-                onSend = {
-                    if (inputText.isNotBlank()) {
-                        messages.add(ChatMessage(text = inputText.trim(), isUser = true))
-                        inputText = ""
-                        // Simulated AI response
-                        messages.add(
-                            ChatMessage(
-                                text = "This is a simulated AI response. In a real app, this would come from an API.",
-                                isUser = false
-                            )
-                        )
-                    }
-                },
-                hasMessages = messages.isNotEmpty(),
+                inputText = chatState.inputText,
+                onInputChange = { viewModel.onInputChange(it) },
+                onSend = { viewModel.onSendMessage() },
+                hasMessages = chatState.messages.isNotEmpty(),
                 modifier = Modifier
                     .navigationBarsPadding()
                     .imePadding()
@@ -131,7 +109,7 @@ fun ChatScreen(modifier: Modifier = Modifier) {
             )
         }
     ) { innerPadding ->
-        if (messages.isEmpty()) {
+        if (chatState.messages.isEmpty()) {
             // Empty state
             Column(
                 modifier = Modifier
@@ -165,7 +143,7 @@ fun ChatScreen(modifier: Modifier = Modifier) {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(messages) { message ->
+                items(chatState.messages) { message ->
                     MessageBubble(
                         text = message.text,
                         isUser = message.isUser
@@ -176,14 +154,11 @@ fun ChatScreen(modifier: Modifier = Modifier) {
     }
     } // ModalNavigationDrawer end
 
-    if (showModelSheet) {
+    if (chatState.showModelSheet) {
         ModelBottomSheet(
-            selectedModel = selectedModel,
-            onModelSelected = { model ->
-                selectedModel = model
-                showModelSheet = false
-            },
-            onDismiss = { showModelSheet = false }
+            selectedModel = chatState.selectedModel,
+            onModelSelected = { model -> viewModel.onModelSelected(model) },
+            onDismiss = { viewModel.onShowModelSheet(false) }
         )
     }
 }
