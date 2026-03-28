@@ -22,6 +22,7 @@ import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryScreen
 import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
 import rip.haris.prismai.presentation.ui.screens.settings.SettingsScreen
+import rip.haris.prismai.data.model.sampleChats
 import rip.haris.prismai.presentation.viewmodel.ChatHistoryViewModel
 import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 import rip.haris.prismai.presentation.viewmodel.LoginViewModel
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 val recentChats = remember {
-                    (1..8).map { "Sample #$it" }
+                    sampleChats.take(11).map { it.title }
                 }
 
                 if (!loginState.isLoggedIn) {
