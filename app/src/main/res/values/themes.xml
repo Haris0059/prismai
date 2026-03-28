@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.PrismAI" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.PrismAI.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_512</item>
+        <item name="postSplashScreenTheme">@style/Theme.PrismAI</item>
+    </style>
 </resources>
