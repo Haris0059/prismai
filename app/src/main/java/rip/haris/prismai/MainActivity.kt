@@ -4,13 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import rip.haris.prismai.presentation.theme.PrismAITheme
 import rip.haris.prismai.presentation.ui.screens.chat.ChatScreen
+import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryScreen
 import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
 import rip.haris.prismai.presentation.ui.screens.settings.SettingsScreen
@@ -25,43 +32,68 @@ class MainActivity : ComponentActivity() {
     private val chatHistoryViewModel = ChatHistoryViewModel()
     private val settingsViewModel = SettingsViewModel()
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             PrismAITheme {
                 val loginState by loginViewModel.state.collectAsState()
-                var showChatHistory by remember { mutableStateOf(false) }
-                var showSettings by remember { mutableStateOf(false) }
-                var openDrawer by remember { mutableStateOf(false) }
+                var currentScreen by remember { mutableStateOf("chat") }
+                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+                val scope = rememberCoroutineScope()
+
+                val recentChats = remember {
+                    (1..8).map { "Sample #$it" }
+                }
 
                 if (!loginState.isLoggedIn) {
                     LoginScreen(viewModel = loginViewModel)
-                } else if (showSettings) {
-                    SettingsScreen(
-                        viewModel = settingsViewModel,
-                        onBackToChat = {
-                            openDrawer = true
-                            showSettings = false
-                        },
-                        onLogout = {
-                            showSettings = false
-                            loginViewModel.onLogout()
-                        }
-                    )
-                } else if (showChatHistory) {
-                    ChatHistoryScreen(
-                        viewModel = chatHistoryViewModel,
-                        onBackToChat = { showChatHistory = false }
-                    )
                 } else {
-                    ChatScreen(
-                        viewModel = chatViewModel,
-                        onNavigateToChatHistory = { showChatHistory = true },
-                        onNavigateToSettings = { showSettings = true },
-                        openDrawer = openDrawer,
-                        onDrawerOpened = { openDrawer = false }
-                    )
+                    ModalNavigationDrawer(
+                        drawerState = drawerState,
+                        drawerContent = {
+                            DrawerContent(
+                                recentChats = recentChats,
+                                onNewChat = {
+                                    chatViewModel.onNewChat()
+                                    currentScreen = "chat"
+                                    scope.launch { drawerState.close() }
+                                },
+                                onRecentChatClick = {
+                                    scope.launch { drawerState.close() }
+                                },
+                                onChatsClick = {
+                                    currentScreen = "chatHistory"
+                                    scope.launch { drawerState.close() }
+                                },
+                                onSettingsClick = {
+                                    currentScreen = "settings"
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
+                        }
+                    ) {
+                        when (currentScreen) {
+                            "settings" -> SettingsScreen(
+                                viewModel = settingsViewModel,
+                                onOpenDrawer = { scope.launch { drawerState.open() } },
+                                onLogout = {
+                                    currentScreen = "chat"
+                                    loginViewModel.onLogout()
+                                }
+                            )
+                            "chatHistory" -> ChatHistoryScreen(
+                                viewModel = chatHistoryViewModel,
+                                onOpenDrawer = { scope.launch { drawerState.open() } }
+                            )
+                            else -> ChatScreen(
+                                viewModel = chatViewModel,
+                                onOpenDrawer = { scope.launch { drawerState.open() } },
+                                isDrawerOpen = drawerState.isOpen
+                            )
+                        }
+                    }
                 }
             }
         }
