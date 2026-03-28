@@ -40,6 +40,7 @@ fun DrawerContent(
     recentChats: List<String>,
     onNewChat: () -> Unit,
     onRecentChatClick: (String) -> Unit,
+    onChatsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -85,7 +86,7 @@ fun DrawerContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Menu items
-        DrawerMenuItem(icon = Icons.Outlined.ChatBubbleOutline, label = "Chats")
+        DrawerMenuItem(icon = Icons.Outlined.ChatBubbleOutline, label = "Chats", onClick = onChatsClick)
 
         Spacer(modifier = Modifier.height(8.dp))
 
