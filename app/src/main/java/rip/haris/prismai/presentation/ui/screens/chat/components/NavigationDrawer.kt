@@ -128,7 +128,9 @@ fun DrawerContent(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onSettingsClick)
         ) {
             // User avatar
             Box(
