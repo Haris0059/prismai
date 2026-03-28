@@ -127,7 +127,7 @@ fun ChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "How can I help you\ntoday?",
+                    text = chatState.greeting,
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
