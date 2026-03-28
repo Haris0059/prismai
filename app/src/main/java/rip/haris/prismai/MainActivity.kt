@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
                 val recentChats = remember {
                     sampleChats.take(11).map { it.title }
                 }
+                val profileState by profileViewModel.state.collectAsState()
 
                 if (!loginState.isLoggedIn) {
                     LoginScreen(viewModel = loginViewModel)
@@ -76,7 +77,8 @@ class MainActivity : ComponentActivity() {
                                 onSettingsClick = {
                                     currentScreen = "settings"
                                     scope.launch { drawerState.close() }
-                                }
+                                },
+                                userName = profileState.savedFullName
                             )
                         }
                     ) {

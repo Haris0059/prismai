@@ -42,6 +42,7 @@ fun DrawerContent(
     onRecentChatClick: (String) -> Unit,
     onChatsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    userName: String = "Haris",
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -141,7 +142,7 @@ fun DrawerContent(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "H",
+                    text = userName.firstOrNull()?.uppercase() ?: "",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
@@ -150,7 +151,7 @@ fun DrawerContent(
             Spacer(modifier = Modifier.width(12.dp))
 
             Text(
-                text = "Haris",
+                text = userName,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
