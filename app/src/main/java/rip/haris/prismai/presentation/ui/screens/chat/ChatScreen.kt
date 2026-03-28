@@ -1,5 +1,6 @@
 package rip.haris.prismai.presentation.ui.screens.chat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -29,12 +31,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import rip.haris.prismai.R
 import rip.haris.prismai.presentation.ui.screens.chat.components.ChatInputBar
 import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chat.components.MessageBubble
@@ -118,10 +122,10 @@ fun ChatScreen(viewModel: ChatViewModel, modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "\u2736",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.tertiary
+                Image(
+                    painter = painterResource(id = R.drawable.logo_512),
+                    contentDescription = "Prism AI Logo",
+                    modifier = Modifier.size(36.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
