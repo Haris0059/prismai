@@ -100,7 +100,8 @@ class MainActivity : ComponentActivity() {
                                 onNewChat = {
                                     chatViewModel.onNewChat()
                                     currentScreen = "chat"
-                                }
+                                },
+                                isDrawerOpen = drawerState.targetValue == DrawerValue.Open
                             )
                             else -> ChatScreen(
                                 viewModel = chatViewModel,

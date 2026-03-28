@@ -17,9 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
@@ -37,9 +39,17 @@ fun ChatHistoryScreen(
     viewModel: ChatHistoryViewModel,
     onOpenDrawer: () -> Unit,
     onNewChat: () -> Unit,
+    isDrawerOpen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(isDrawerOpen) {
+        if (isDrawerOpen) {
+            focusManager.clearFocus()
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -47,7 +57,10 @@ fun ChatHistoryScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onOpenDrawer) {
+                    IconButton(onClick = {
+                        focusManager.clearFocus()
+                        onOpenDrawer()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = "Menu"
