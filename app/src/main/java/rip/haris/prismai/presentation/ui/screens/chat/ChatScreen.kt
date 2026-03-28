@@ -71,7 +71,6 @@ fun ChatScreen(
                         )
                     }
                 },
-                actions = { },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
