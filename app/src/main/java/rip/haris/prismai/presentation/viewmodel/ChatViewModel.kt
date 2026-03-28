@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import rip.haris.prismai.data.model.ChatMessage
 import rip.haris.prismai.data.model.ChatState
+import rip.haris.prismai.data.model.greetings
 
 class ChatViewModel : ViewModel() {
 
@@ -44,7 +45,7 @@ class ChatViewModel : ViewModel() {
     }
 
     fun onNewChat() {
-        _state.update { it.copy(messages = emptyList(), inputText = "") }
+        _state.update { it.copy(messages = emptyList(), inputText = "", greeting = greetings.random()) }
     }
 
     fun onShowModelSheet(show: Boolean) {
