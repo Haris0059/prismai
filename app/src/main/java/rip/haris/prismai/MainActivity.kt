@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                             else -> ChatScreen(
                                 viewModel = chatViewModel,
                                 onOpenDrawer = { scope.launch { drawerState.open() } },
-                                isDrawerOpen = drawerState.isOpen
+                                isDrawerOpen = drawerState.targetValue == DrawerValue.Open
                             )
                         }
                     }

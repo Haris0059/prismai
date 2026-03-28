@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -41,8 +42,12 @@ fun ChatInputBar(
 ) {
     val focusRequester = remember { FocusRequester() }
 
+    val focusManager = LocalFocusManager.current
+
     LaunchedEffect(isDrawerOpen) {
-        if (!isDrawerOpen) {
+        if (isDrawerOpen) {
+            focusManager.clearFocus()
+        } else {
             focusRequester.requestFocus()
         }
     }
