@@ -50,6 +50,10 @@ class LoginViewModel : ViewModel() {
         _state.update { it.copy(isLoading = true) }
     }
 
+    fun onLogout() {
+        _state.update { LoginState() }
+    }
+
     private fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }

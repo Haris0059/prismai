@@ -48,7 +48,7 @@ import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {}, onNavigateToSettings: () -> Unit = {}, modifier: Modifier = Modifier) {
     val chatState by viewModel.state.collectAsState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -73,6 +73,10 @@ fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {
                 onChatsClick = {
                     scope.launch { drawerState.close() }
                     onNavigateToChatHistory()
+                },
+                onSettingsClick = {
+                    scope.launch { drawerState.close() }
+                    onNavigateToSettings()
                 }
             )
         }

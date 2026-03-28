@@ -41,6 +41,7 @@ fun DrawerContent(
     onNewChat: () -> Unit,
     onRecentChatClick: (String) -> Unit,
     onChatsClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -153,7 +154,7 @@ fun DrawerContent(
                 modifier = Modifier.weight(1f)
             )
 
-            IconButton(onClick = { }) {
+            IconButton(onClick = onSettingsClick) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Settings",
