@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -31,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import rip.haris.prismai.presentation.ui.screens.settings.components.SettingsMenuItem
-import rip.haris.prismai.presentation.ui.screens.settings.components.SettingsToggleItem
 import rip.haris.prismai.presentation.ui.screens.settings.components.SettingsUserCard
 import rip.haris.prismai.presentation.viewmodel.SettingsViewModel
 
@@ -118,14 +116,6 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsMenuItem(
-                    icon = Icons.Default.Shield,
-                    label = "Permissions",
-                    onClick = { }
-                )
-            }
-
-            item {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
                     color = MaterialTheme.colorScheme.outlineVariant
@@ -134,11 +124,10 @@ fun SettingsScreen(
 
             // Preferences section
             item {
-                SettingsToggleItem(
-                    icon = Icons.Default.Vibration,
-                    label = "Haptic feedback",
-                    checked = state.hapticFeedbackEnabled,
-                    onCheckedChange = { viewModel.onHapticFeedbackToggle(it) }
+                SettingsMenuItem(
+                    icon = Icons.Default.Shield,
+                    label = "Permissions",
+                    onClick = { }
                 )
             }
 
