@@ -57,6 +57,7 @@ fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {
 
     LaunchedEffect(openDrawer) {
         if (openDrawer) {
+            focusManager.clearFocus()
             drawerState.open()
             onDrawerOpened()
         }
@@ -122,6 +123,7 @@ fun ChatScreen(viewModel: ChatViewModel, onNavigateToChatHistory: () -> Unit = {
                 onInputChange = { viewModel.onInputChange(it) },
                 onSend = { viewModel.onSendMessage() },
                 hasMessages = chatState.messages.isNotEmpty(),
+                isDrawerOpen = drawerState.isOpen,
                 modifier = Modifier
                     .navigationBarsPadding()
                     .imePadding()

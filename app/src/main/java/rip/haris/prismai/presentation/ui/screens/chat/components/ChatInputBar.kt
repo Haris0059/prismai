@@ -36,12 +36,15 @@ fun ChatInputBar(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     hasMessages: Boolean,
+    isDrawerOpen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    LaunchedEffect(isDrawerOpen) {
+        if (!isDrawerOpen) {
+            focusRequester.requestFocus()
+        }
     }
 
     Column(
