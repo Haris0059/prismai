@@ -21,11 +21,13 @@ import rip.haris.prismai.presentation.ui.screens.chat.ChatScreen
 import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryScreen
 import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
+import rip.haris.prismai.presentation.ui.screens.profile.ProfileScreen
 import rip.haris.prismai.presentation.ui.screens.settings.SettingsScreen
 import rip.haris.prismai.data.model.sampleChats
 import rip.haris.prismai.presentation.viewmodel.ChatHistoryViewModel
 import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 import rip.haris.prismai.presentation.viewmodel.LoginViewModel
+import rip.haris.prismai.presentation.viewmodel.ProfileViewModel
 import rip.haris.prismai.presentation.viewmodel.SettingsViewModel
 
 class MainActivity : ComponentActivity() {
@@ -33,6 +35,7 @@ class MainActivity : ComponentActivity() {
     private val chatViewModel = ChatViewModel()
     private val chatHistoryViewModel = ChatHistoryViewModel()
     private val settingsViewModel = SettingsViewModel()
+    private val profileViewModel = ProfileViewModel()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,13 +81,18 @@ class MainActivity : ComponentActivity() {
                         }
                     ) {
                         when (currentScreen) {
+                            "profile" -> ProfileScreen(
+                                viewModel = profileViewModel,
+                                onBack = { currentScreen = "settings" }
+                            )
                             "settings" -> SettingsScreen(
                                 viewModel = settingsViewModel,
                                 onOpenDrawer = { scope.launch { drawerState.open() } },
                                 onLogout = {
                                     currentScreen = "chat"
                                     loginViewModel.onLogout()
-                                }
+                                },
+                                onProfileClick = { currentScreen = "profile" }
                             )
                             "chatHistory" -> ChatHistoryScreen(
                                 viewModel = chatHistoryViewModel,

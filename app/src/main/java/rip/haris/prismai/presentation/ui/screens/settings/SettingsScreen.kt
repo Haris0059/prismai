@@ -39,6 +39,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onOpenDrawer: () -> Unit,
     onLogout: () -> Unit,
+    onProfileClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsState()
@@ -95,7 +96,7 @@ fun SettingsScreen(
                 SettingsMenuItem(
                     icon = Icons.Default.Person,
                     label = "Profile",
-                    onClick = { }
+                    onClick = onProfileClick
                 )
             }
 
