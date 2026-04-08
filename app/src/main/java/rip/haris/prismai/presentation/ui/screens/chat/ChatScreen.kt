@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -49,6 +52,14 @@ fun ChatScreen(
 ) {
     val chatState by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(chatState.messages.size) {
+        if (chatState.messages.isNotEmpty()) {
+            delay(100)
+            listState.animateScrollToItem(chatState.messages.size - 1)
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -116,6 +127,7 @@ fun ChatScreen(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
