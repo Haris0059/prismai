@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 val recentChats = remember {
-                    sampleChats.take(11).map { it.title }
+                    sampleChats.map { it.title }
                 }
                 val profileState by profileViewModel.state.collectAsState()
 

@@ -106,7 +106,9 @@ fun DrawerContent(
 
         // Recent chats list
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(recentChats) { chat ->
