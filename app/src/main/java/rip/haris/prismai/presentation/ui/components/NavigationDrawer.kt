@@ -1,4 +1,4 @@
-package rip.haris.prismai.presentation.ui.screens.chat.components
+package rip.haris.prismai.presentation.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

@@ -18,7 +18,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import rip.haris.prismai.presentation.theme.PrismAITheme
 import rip.haris.prismai.presentation.ui.screens.chat.ChatScreen
-import rip.haris.prismai.presentation.ui.screens.chat.components.DrawerContent
+import rip.haris.prismai.presentation.ui.components.DrawerContent
 import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryScreen
 import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
 import rip.haris.prismai.presentation.ui.screens.profile.ProfileScreen
