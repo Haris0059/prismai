@@ -118,12 +118,23 @@ fun ChatHistoryScreen(
                 )
             }
 
-            items(state.filteredChats) { chat ->
-                ChatHistoryListItem(
-                    title = chat.title,
-                    timeAgo = chat.timeAgo,
-                    onClick = { }
-                )
+            if (state.filteredChats.isEmpty()) {
+                item {
+                    Text(
+                        text = if (state.searchQuery.isBlank()) "No chats yet" else "No chats found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 24.dp)
+                    )
+                }
+            } else {
+                items(state.filteredChats) { chat ->
+                    ChatHistoryListItem(
+                        title = chat.title,
+                        timeAgo = chat.timeAgo,
+                        onClick = { }
+                    )
+                }
             }
         }
     }
