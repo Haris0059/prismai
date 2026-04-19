@@ -37,6 +37,7 @@ fun ChatInputBar(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     hasMessages: Boolean,
+    canSend: Boolean,
     isDrawerOpen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -100,7 +101,7 @@ fun ChatInputBar(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (inputText.isNotBlank()) {
+                if (canSend) {
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary,

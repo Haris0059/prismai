@@ -43,4 +43,7 @@ data class ChatState(
     val selectedModel: String = "Opus 4.6",
     val showModelSheet: Boolean = false,
     val greeting: String = greetings.random()
-)
+) {
+    val canSend: Boolean
+        get() = inputText.isNotBlank() && selectedModel.isNotBlank()
+}

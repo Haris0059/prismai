@@ -93,6 +93,7 @@ fun ChatScreen(
                 onInputChange = { viewModel.onInputChange(it) },
                 onSend = { viewModel.onSendMessage() },
                 hasMessages = chatState.messages.isNotEmpty(),
+                canSend = chatState.canSend,
                 isDrawerOpen = isDrawerOpen,
                 modifier = Modifier
                     .navigationBarsPadding()
