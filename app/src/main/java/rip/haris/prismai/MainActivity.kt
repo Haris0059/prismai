@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                     if (loginState.isLoggedIn) Routes.CHAT else Routes.LOGIN
                 }
 
-                val recentChats = remember { sampleChats.map { it.title } }
+                val recentChats = remember { sampleChats }
 
                 val drawerEnabled = currentRoute != null && currentRoute != Routes.LOGIN
 
@@ -85,7 +85,10 @@ class MainActivity : ComponentActivity() {
                                 }
                                 scope.launch { drawerState.close() }
                             },
-                            onRecentChatClick = {
+                            onRecentChatClick = { id, title ->
+                                navController.navigate(Routes.chatDetail(id, title)) {
+                                    launchSingleTop = true
+                                }
                                 scope.launch { drawerState.close() }
                             },
                             onChatsClick = {

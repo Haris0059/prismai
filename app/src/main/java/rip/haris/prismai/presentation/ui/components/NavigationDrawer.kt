@@ -34,12 +34,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import rip.haris.prismai.data.model.ChatHistoryItem
 
 @Composable
 fun DrawerContent(
-    recentChats: List<String>,
+    recentChats: List<ChatHistoryItem>,
     onNewChat: () -> Unit,
-    onRecentChatClick: (String) -> Unit,
+    onRecentChatClick: (id: String, title: String) -> Unit,
     onChatsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     userName: String = "Haris",
@@ -113,13 +114,13 @@ fun DrawerContent(
         ) {
             items(recentChats) { chat ->
                 Text(
-                    text = chat,
+                    text = chat.title,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onRecentChatClick(chat) }
+                        .clickable { onRecentChatClick(chat.id, chat.title) }
                         .padding(vertical = 10.dp)
                 )
             }
