@@ -2,7 +2,6 @@ package rip.haris.prismai
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.DrawerValue
@@ -11,19 +10,18 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import rip.haris.prismai.presentation.theme.PrismAITheme
-import rip.haris.prismai.presentation.ui.screens.chat.ChatScreen
-import rip.haris.prismai.presentation.ui.components.DrawerContent
-import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryScreen
-import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
-import rip.haris.prismai.presentation.ui.screens.profile.ProfileScreen
-import rip.haris.prismai.presentation.ui.screens.settings.SettingsScreen
 import rip.haris.prismai.data.model.sampleChats
+import rip.haris.prismai.presentation.navigation.AppNavHost
+import rip.haris.prismai.presentation.navigation.AppViewModels
+import rip.haris.prismai.presentation.navigation.Routes
+import rip.haris.prismai.presentation.theme.PrismAITheme
+import rip.haris.prismai.presentation.ui.components.DrawerContent
 import rip.haris.prismai.presentation.viewmodel.ChatHistoryViewModel
 import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 import rip.haris.prismai.presentation.viewmodel.LoginViewModel
@@ -44,74 +42,79 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PrismAITheme {
-                val loginState by loginViewModel.state.collectAsState()
-                var currentScreen by remember { mutableStateOf("chat") }
+                val viewModels = remember {
+                    AppViewModels(
+                        login = loginViewModel,
+                        chat = chatViewModel,
+                        chatHistory = chatHistoryViewModel,
+                        settings = settingsViewModel,
+                        profile = profileViewModel,
+                    )
+                }
+
+                val navController = rememberNavController()
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
 
-                val recentChats = remember {
-                    sampleChats.map { it.title }
-                }
+                val currentBackStack by navController.currentBackStackEntryAsState()
+                val currentRoute = currentBackStack?.destination?.route
+
+                val loginState by loginViewModel.state.collectAsState()
                 val profileState by profileViewModel.state.collectAsState()
 
-                if (!loginState.isLoggedIn) {
-                    LoginScreen(viewModel = loginViewModel)
-                } else {
-                    ModalNavigationDrawer(
-                        drawerState = drawerState,
-                        drawerContent = {
-                            DrawerContent(
-                                recentChats = recentChats,
-                                onNewChat = {
-                                    chatViewModel.onNewChat()
-                                    currentScreen = "chat"
-                                    scope.launch { drawerState.close() }
-                                },
-                                onRecentChatClick = {
-                                    scope.launch { drawerState.close() }
-                                },
-                                onChatsClick = {
-                                    currentScreen = "chatHistory"
-                                    scope.launch { drawerState.close() }
-                                },
-                                onSettingsClick = {
-                                    currentScreen = "settings"
-                                    scope.launch { drawerState.close() }
-                                },
-                                userName = profileState.savedFullName
-                            )
-                        }
-                    ) {
-                        when (currentScreen) {
-                            "profile" -> ProfileScreen(
-                                viewModel = profileViewModel,
-                                onBack = { currentScreen = "settings" }
-                            )
-                            "settings" -> SettingsScreen(
-                                viewModel = settingsViewModel,
-                                onOpenDrawer = { scope.launch { drawerState.open() } },
-                                onLogout = {
-                                    currentScreen = "chat"
-                                    loginViewModel.onLogout()
-                                },
-                                onProfileClick = { currentScreen = "profile" }
-                            )
-                            "chatHistory" -> ChatHistoryScreen(
-                                viewModel = chatHistoryViewModel,
-                                onOpenDrawer = { scope.launch { drawerState.open() } },
-                                onNewChat = {
-                                    chatViewModel.onNewChat()
-                                    currentScreen = "chat"
-                                },
-                                isDrawerOpen = drawerState.targetValue == DrawerValue.Open
-                            )
-                            else -> ChatScreen(
-                                viewModel = chatViewModel,
-                                onOpenDrawer = { scope.launch { drawerState.open() } },
-                                isDrawerOpen = drawerState.targetValue == DrawerValue.Open
-                            )
-                        }
+                val startDestination = remember {
+                    if (loginState.isLoggedIn) Routes.CHAT else Routes.LOGIN
+                }
+
+                val recentChats = remember { sampleChats.map { it.title } }
+
+                val drawerEnabled = currentRoute != null && currentRoute != Routes.LOGIN
+
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    gesturesEnabled = drawerEnabled,
+                    drawerContent = {
+                        DrawerContent(
+                            recentChats = recentChats,
+                            onNewChat = {
+                                chatViewModel.onNewChat()
+                                navController.navigate(Routes.CHAT) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                                scope.launch { drawerState.close() }
+                            },
+                            onRecentChatClick = {
+                                scope.launch { drawerState.close() }
+                            },
+                            onChatsClick = {
+                                navController.navigate(Routes.CHAT_HISTORY) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                                scope.launch { drawerState.close() }
+                            },
+                            onSettingsClick = {
+                                navController.navigate(Routes.SETTINGS) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                                scope.launch { drawerState.close() }
+                            },
+                            userName = profileState.savedFullName
+                        )
                     }
+                ) {
+                    AppNavHost(
+                        navController = navController,
+                        startDestination = startDestination,
+                        viewModels = viewModels,
+                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                        isDrawerOpen = { drawerState.targetValue == DrawerValue.Open },
+                    )
                 }
             }
         }

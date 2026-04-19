@@ -48,6 +48,16 @@ class ChatViewModel : ViewModel() {
         _state.update { it.copy(messages = emptyList(), inputText = "", greeting = greetings.random()) }
     }
 
+    fun loadChat(chatId: String, title: String) {
+        // Placeholder: real chat loading will be wired to a repository in Assignment 3.
+        _state.update {
+            it.copy(
+                messages = listOf(ChatMessage(text = title, isUser = true)),
+                inputText = "",
+            )
+        }
+    }
+
     fun onShowModelSheet(show: Boolean) {
         _state.update { it.copy(showModelSheet = show) }
     }

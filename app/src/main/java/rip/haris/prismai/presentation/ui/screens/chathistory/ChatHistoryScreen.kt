@@ -38,6 +38,7 @@ fun ChatHistoryScreen(
     viewModel: ChatHistoryViewModel,
     onOpenDrawer: () -> Unit,
     onNewChat: () -> Unit,
+    onChatClick: (id: String, title: String) -> Unit = { _, _ -> },
     isDrawerOpen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -132,7 +133,7 @@ fun ChatHistoryScreen(
                     ChatHistoryListItem(
                         title = chat.title,
                         timeAgo = chat.timeAgo,
-                        onClick = { }
+                        onClick = { onChatClick(chat.id, chat.title) }
                     )
                 }
             }
