@@ -46,6 +46,17 @@ object HardcodedData {
         "Great things start\nwith a single message.",
     )
 
+    val suggestedPrompts: List<String> = listOf(
+        "Explain recursion simply",
+        "Summarize this article",
+        "Write a unit test",
+        "Debug my code",
+        "Plan my week",
+        "Brainstorm project names",
+        "Draft an email",
+        "Review my resume",
+    )
+
     val availableModels: List<AiModel> = listOf(
         AiModel("Opus 4.6", "Most capable for ambitious work"),
         AiModel("Sonnet 4.6", "Most efficient for everyday tasks"),

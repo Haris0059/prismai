@@ -38,8 +38,10 @@ import androidx.compose.ui.unit.dp
 import rip.haris.prismai.R
 import rip.haris.prismai.presentation.ui.screens.chat.components.ChatInputBar
 import rip.haris.prismai.presentation.ui.screens.chat.components.MessageBubble
+import rip.haris.prismai.data.model.HardcodedData
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelBottomSheet
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelSelectorButton
+import rip.haris.prismai.presentation.ui.screens.chat.components.SuggestedPromptsRow
 import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,6 +126,13 @@ fun ChatScreen(
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                SuggestedPromptsRow(
+                    prompts = HardcodedData.suggestedPrompts,
+                    onPromptClick = { viewModel.onInputChange(it) },
                 )
             }
         } else {
