@@ -16,7 +16,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import rip.haris.prismai.data.model.sampleChats
+import rip.haris.prismai.data.model.HardcodedData
 import rip.haris.prismai.presentation.navigation.AppNavHost
 import rip.haris.prismai.presentation.navigation.AppViewModels
 import rip.haris.prismai.presentation.navigation.Routes
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                     if (loginState.isLoggedIn) Routes.CHAT else Routes.LOGIN
                 }
 
-                val recentChats = remember { sampleChats }
+                val recentChats = remember { HardcodedData.sampleChats }
 
                 val drawerEnabled = currentRoute != null && currentRoute != Routes.LOGIN
 
