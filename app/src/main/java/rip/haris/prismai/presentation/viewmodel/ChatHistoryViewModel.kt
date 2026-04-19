@@ -10,16 +10,6 @@ class ChatHistoryViewModel : ViewModel() {
     val state: StateFlow<ChatHistoryState> = _state
 
     fun onSearchQueryChange(query: String) {
-        val filtered = if (query.isBlank()) {
-            _state.value.chats
-        } else {
-            _state.value.chats.filter {
-                it.title.contains(query, ignoreCase = true)
-            }
-        }
-        _state.value = _state.value.copy(
-            searchQuery = query,
-            filteredChats = filtered
-        )
+        _state.value = _state.value.copy(searchQuery = query)
     }
 }
