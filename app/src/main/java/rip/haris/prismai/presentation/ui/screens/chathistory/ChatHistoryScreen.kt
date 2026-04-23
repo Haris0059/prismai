@@ -38,6 +38,7 @@ fun ChatHistoryScreen(
     viewModel: ChatHistoryViewModel,
     onOpenDrawer: () -> Unit,
     onNewChat: () -> Unit,
+    onChatClick: (id: String, title: String) -> Unit = { _, _ -> },
     isDrawerOpen: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -118,12 +119,23 @@ fun ChatHistoryScreen(
                 )
             }
 
-            items(state.filteredChats) { chat ->
-                ChatHistoryListItem(
-                    title = chat.title,
-                    timeAgo = chat.timeAgo,
-                    onClick = { }
-                )
+            if (state.filteredChats.isEmpty()) {
+                item {
+                    Text(
+                        text = if (state.searchQuery.isBlank()) "No chats yet" else "No chats found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 24.dp)
+                    )
+                }
+            } else {
+                items(state.filteredChats) { chat ->
+                    ChatHistoryListItem(
+                        title = chat.title,
+                        timeAgo = chat.timeAgo,
+                        onClick = { onChatClick(chat.id, chat.title) }
+                    )
+                }
             }
         }
     }

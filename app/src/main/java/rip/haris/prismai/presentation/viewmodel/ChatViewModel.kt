@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import rip.haris.prismai.data.model.ChatMessage
 import rip.haris.prismai.data.model.ChatState
-import rip.haris.prismai.data.model.greetings
+import rip.haris.prismai.data.model.HardcodedData
 
 class ChatViewModel : ViewModel() {
 
@@ -33,7 +33,7 @@ class ChatViewModel : ViewModel() {
         _state.update {
             it.copy(
                 messages = it.messages + ChatMessage(
-                    text = "This is a simulated AI response. In a real app, this would come from an API.",
+                    text = HardcodedData.SIMULATED_AI_RESPONSE,
                     isUser = false
                 )
             )
@@ -45,7 +45,17 @@ class ChatViewModel : ViewModel() {
     }
 
     fun onNewChat() {
-        _state.update { it.copy(messages = emptyList(), inputText = "", greeting = greetings.random()) }
+        _state.update { it.copy(messages = emptyList(), inputText = "", greeting = HardcodedData.greetings.random()) }
+    }
+
+    fun loadChat(chatId: String, title: String) {
+        // Placeholder: real chat loading will be wired to a repository in Assignment 3.
+        _state.update {
+            it.copy(
+                messages = listOf(ChatMessage(text = title, isUser = true)),
+                inputText = "",
+            )
+        }
     }
 
     fun onShowModelSheet(show: Boolean) {

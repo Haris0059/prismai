@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,8 +38,10 @@ import androidx.compose.ui.unit.dp
 import rip.haris.prismai.R
 import rip.haris.prismai.presentation.ui.screens.chat.components.ChatInputBar
 import rip.haris.prismai.presentation.ui.screens.chat.components.MessageBubble
+import rip.haris.prismai.data.model.HardcodedData
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelBottomSheet
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelSelectorButton
+import rip.haris.prismai.presentation.ui.screens.chat.components.SuggestedPromptsRow
 import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +54,14 @@ fun ChatScreen(
 ) {
     val chatState by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(chatState.messages.size) {
+        if (chatState.messages.isNotEmpty()) {
+            delay(100)
+            listState.animateScrollToItem(chatState.messages.size - 1)
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -82,6 +95,7 @@ fun ChatScreen(
                 onInputChange = { viewModel.onInputChange(it) },
                 onSend = { viewModel.onSendMessage() },
                 hasMessages = chatState.messages.isNotEmpty(),
+                canSend = chatState.canSend,
                 isDrawerOpen = isDrawerOpen,
                 modifier = Modifier
                     .navigationBarsPadding()
@@ -113,9 +127,17 @@ fun ChatScreen(
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                SuggestedPromptsRow(
+                    prompts = HardcodedData.suggestedPrompts,
+                    onPromptClick = { viewModel.onInputChange(it) },
+                )
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
