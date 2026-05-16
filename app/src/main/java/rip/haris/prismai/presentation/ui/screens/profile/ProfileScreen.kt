@@ -17,132 +17,115 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import rip.haris.prismai.presentation.ui.screens.profile.components.DeleteAccountButton
 import rip.haris.prismai.presentation.ui.screens.profile.components.ProfileActionButton
 import rip.haris.prismai.presentation.ui.screens.profile.components.ProfileTextField
-import rip.haris.prismai.presentation.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel,
+    uiState: ProfileUiState,
+    onFullNameChange: (String) -> Unit,
+    onDisplayNameChange: (String) -> Unit,
+    onPreferencesChange: (String) -> Unit,
+    onUpdateProfile: () -> Unit,
+    onSavePreferences: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val state by viewModel.state.collectAsState()
-
     Scaffold(
         modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Profile",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
+                title = { Text(text = "Profile", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
-        }
+        },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 24.dp),
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            item { Spacer(modifier = Modifier.height(8.dp)) }
 
             item {
                 ProfileTextField(
                     label = "Full name",
-                    value = state.fullName,
-                    onValueChange = viewModel::onFullNameChange
+                    value = uiState.fullName,
+                    onValueChange = onFullNameChange,
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
                 ProfileTextField(
                     label = "What should we call you?",
-                    value = state.displayName,
-                    onValueChange = viewModel::onDisplayNameChange
+                    value = uiState.displayName,
+                    onValueChange = onDisplayNameChange,
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
                 ProfileActionButton(
                     text = "Update Profile",
-                    enabled = state.isProfileChanged,
-                    onClick = viewModel::onUpdateProfile
+                    enabled = uiState.isProfileChanged,
+                    onClick = onUpdateProfile,
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-            }
+            item { Spacer(modifier = Modifier.height(24.dp)) }
 
             item {
                 Text(
                     text = "What should PrismAI keep in mind when responding?",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "These preferences will apply to all conversations.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+            item { Spacer(modifier = Modifier.height(12.dp)) }
 
             item {
                 ProfileTextField(
                     label = "",
-                    value = state.preferences,
-                    onValueChange = viewModel::onPreferencesChange,
+                    value = uiState.preferences,
+                    onValueChange = onPreferencesChange,
                     placeholder = "Ask clarifying questions before giving detailed answers",
                     singleLine = false,
-                    minLines = 4
+                    minLines = 4,
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
                 ProfileActionButton(
                     text = "Save Preferences",
-                    enabled = state.isPreferencesChanged,
-                    onClick = viewModel::onSavePreferences
+                    enabled = uiState.isPreferencesChanged,
+                    onClick = onSavePreferences,
                 )
             }
 
@@ -156,18 +139,14 @@ fun ProfileScreen(
                 Text(
                     text = "Account Actions",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            item {
-                DeleteAccountButton()
-            }
+            item { DeleteAccountButton() }
 
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-            }
+            item { Spacer(modifier = Modifier.height(32.dp)) }
         }
     }
 }
