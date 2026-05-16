@@ -9,9 +9,9 @@ import androidx.navigation.compose.NavHost
 fun AppNavHost(
     navController: NavHostController,
     startDestination: String,
-    viewModels: AppViewModels,
     onOpenDrawer: () -> Unit,
     isDrawerOpen: () -> Boolean,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -21,9 +21,9 @@ fun AppNavHost(
     ) {
         appNavGraph(
             navController = navController,
-            viewModels = viewModels,
             onOpenDrawer = onOpenDrawer,
             isDrawerOpen = isDrawerOpen,
+            onLogout = onLogout,
         )
     }
 }
