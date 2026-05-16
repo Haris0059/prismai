@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import rip.haris.prismai.data.session.NewChatEvent
 import rip.haris.prismai.domain.model.Chat
 import rip.haris.prismai.domain.model.Message
 import rip.haris.prismai.domain.repository.AiModelRepository
@@ -35,6 +36,7 @@ class ChatViewModel @Inject constructor(
     private val aiModelRepository: AiModelRepository,
     private val greetingRepository: GreetingRepository,
     private val userRepository: UserRepository,
+    private val newChatEvent: NewChatEvent,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -71,6 +73,11 @@ class ChatViewModel @Inject constructor(
                 if (id == null) flowOf(emptyList()) else messageRepository.observeMessages(id)
             }
             .onEach { messages -> _uiState.update { it.copy(messages = messages, chatId = currentChatId.value) } }
+            .launchIn(viewModelScope)
+
+        // Reset to a fresh chat (new greeting, no chatId) whenever the drawer fires "New chat".
+        newChatEvent.events
+            .onEach { onNewChat() }
             .launchIn(viewModelScope)
     }
 

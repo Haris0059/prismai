@@ -12,6 +12,7 @@ fun AppNavHost(
     onOpenDrawer: () -> Unit,
     isDrawerOpen: () -> Boolean,
     onLogout: () -> Unit,
+    onStartNewChat: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -24,6 +25,7 @@ fun AppNavHost(
             onOpenDrawer = onOpenDrawer,
             isDrawerOpen = isDrawerOpen,
             onLogout = onLogout,
+            onStartNewChat = onStartNewChat,
         )
     }
 }

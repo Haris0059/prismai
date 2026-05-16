@@ -21,6 +21,7 @@ fun NavGraphBuilder.appNavGraph(
     onOpenDrawer: () -> Unit,
     isDrawerOpen: () -> Boolean,
     onLogout: () -> Unit,
+    onStartNewChat: () -> Unit,
 ) {
     composable(
         route = Routes.LOGIN,
@@ -80,6 +81,7 @@ fun NavGraphBuilder.appNavGraph(
         ChatHistoryRoute(
             onOpenDrawer = onOpenDrawer,
             onNewChat = {
+                onStartNewChat()
                 navController.navigate(Routes.CHAT) {
                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                     launchSingleTop = true

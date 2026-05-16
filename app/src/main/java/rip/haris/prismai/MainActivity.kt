@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
                         DrawerContent(
                             recentChats = recentChats,
                             onNewChat = {
+                                rootViewModel.startNewChat()
                                 navController.navigate(Routes.CHAT) {
                                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                                     launchSingleTop = true
@@ -94,6 +95,7 @@ class MainActivity : ComponentActivity() {
                         onOpenDrawer = { scope.launch { drawerState.open() } },
                         isDrawerOpen = { drawerState.targetValue == DrawerValue.Open },
                         onLogout = { rootViewModel.logout() },
+                        onStartNewChat = { rootViewModel.startNewChat() },
                     )
                 }
             }
