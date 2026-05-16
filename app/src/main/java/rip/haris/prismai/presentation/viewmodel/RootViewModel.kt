@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import rip.haris.prismai.data.session.SessionManager
 import rip.haris.prismai.domain.model.Chat
 import rip.haris.prismai.domain.model.User
 import rip.haris.prismai.domain.repository.ChatRepository
@@ -21,7 +22,12 @@ import rip.haris.prismai.domain.repository.UserRepository
 class RootViewModel @Inject constructor(
     userRepository: UserRepository,
     chatRepository: ChatRepository,
+    private val sessionManager: SessionManager,
 ) : ViewModel() {
+
+    val isLoggedIn: StateFlow<Boolean> = sessionManager.isLoggedIn
+
+    fun logout() = sessionManager.logout()
 
     val currentUser: StateFlow<User?> = userRepository.observeCurrentUser()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

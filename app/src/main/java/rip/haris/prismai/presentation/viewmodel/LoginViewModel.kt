@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import rip.haris.prismai.data.session.SessionManager
 import rip.haris.prismai.domain.repository.UserRepository
 import rip.haris.prismai.presentation.ui.common.LoadStatus
 import rip.haris.prismai.presentation.ui.screens.login.LoginUiState
@@ -16,6 +17,7 @@ import rip.haris.prismai.presentation.ui.screens.login.LoginUiState
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val sessionManager: SessionManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -44,6 +46,7 @@ class LoginViewModel @Inject constructor(
                             it.copy(emailError = "Account not found", status = LoadStatus.Error("Account not found"))
                         }
                     } else {
+                        sessionManager.login()
                         _uiState.update {
                             it.copy(emailError = null, isLoggedIn = true, status = LoadStatus.Success)
                         }
@@ -60,6 +63,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLogout() {
+        sessionManager.logout()
         _uiState.update { LoginUiState() }
     }
 }

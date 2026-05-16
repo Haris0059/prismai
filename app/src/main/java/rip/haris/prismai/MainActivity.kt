@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
 
                 val currentUser by rootViewModel.currentUser.collectAsState()
                 val recentChats by rootViewModel.recentChats.collectAsState()
+                val isLoggedIn by rootViewModel.isLoggedIn.collectAsState()
 
                 val drawerEnabled = currentRoute != null && currentRoute != Routes.LOGIN
 
@@ -89,10 +90,10 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppNavHost(
                         navController = navController,
-                        startDestination = if (currentUser != null) Routes.CHAT else Routes.LOGIN,
+                        startDestination = if (isLoggedIn) Routes.CHAT else Routes.LOGIN,
                         onOpenDrawer = { scope.launch { drawerState.open() } },
                         isDrawerOpen = { drawerState.targetValue == DrawerValue.Open },
-                        onLogout = { /* DB user remains; navigation back to login is enough for demo */ },
+                        onLogout = { rootViewModel.logout() },
                     )
                 }
             }
