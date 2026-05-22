@@ -15,51 +15,50 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import kotlinx.coroutines.delay
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import rip.haris.prismai.R
 import rip.haris.prismai.presentation.ui.screens.chat.components.ChatInputBar
 import rip.haris.prismai.presentation.ui.screens.chat.components.MessageBubble
-import rip.haris.prismai.data.model.HardcodedData
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelBottomSheet
 import rip.haris.prismai.presentation.ui.screens.chat.components.ModelSelectorButton
 import rip.haris.prismai.presentation.ui.screens.chat.components.SuggestedPromptsRow
-import rip.haris.prismai.presentation.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    viewModel: ChatViewModel,
-    onOpenDrawer: () -> Unit = {},
+    uiState: ChatUiState,
+    onInputChange: (String) -> Unit,
+    onSendMessage: () -> Unit,
+    onSelectModel: (String) -> Unit,
+    onShowModelSheet: (Boolean) -> Unit,
+    onOpenDrawer: () -> Unit,
     isDrawerOpen: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val chatState by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
 
-    LaunchedEffect(chatState.messages.size) {
-        if (chatState.messages.isNotEmpty()) {
+    LaunchedEffect(uiState.messages.size) {
+        if (uiState.messages.isNotEmpty()) {
             delay(100)
-            listState.animateScrollToItem(chatState.messages.size - 1)
+            listState.animateScrollToItem(uiState.messages.size - 1)
         }
     }
 
@@ -69,8 +68,8 @@ fun ChatScreen(
             CenterAlignedTopAppBar(
                 title = {
                     ModelSelectorButton(
-                        selectedModel = chatState.selectedModel,
-                        onClick = { viewModel.onShowModelSheet(true) }
+                        selectedModel = uiState.selectedModel?.name.orEmpty(),
+                        onClick = { onShowModelSheet(true) },
                     )
                 },
                 navigationIcon = {
@@ -80,59 +79,59 @@ fun ChatScreen(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Menu,
-                            contentDescription = "Open drawer"
+                            contentDescription = "Open drawer",
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
         },
         bottomBar = {
             ChatInputBar(
-                inputText = chatState.inputText,
-                onInputChange = { viewModel.onInputChange(it) },
-                onSend = { viewModel.onSendMessage() },
-                hasMessages = chatState.messages.isNotEmpty(),
-                canSend = chatState.canSend,
+                inputText = uiState.inputText,
+                onInputChange = onInputChange,
+                onSend = onSendMessage,
+                hasMessages = uiState.messages.isNotEmpty(),
+                canSend = uiState.canSend,
                 isDrawerOpen = isDrawerOpen,
                 modifier = Modifier
                     .navigationBarsPadding()
                     .imePadding()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             )
-        }
+        },
     ) { innerPadding ->
-        if (chatState.messages.isEmpty()) {
+        if (uiState.messages.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.logo_512),
                     contentDescription = "Prism AI Logo",
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(36.dp),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = chatState.greeting,
+                    text = uiState.greeting,
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 SuggestedPromptsRow(
-                    prompts = HardcodedData.suggestedPrompts,
-                    onPromptClick = { viewModel.onInputChange(it) },
+                    prompts = uiState.suggestedPrompts,
+                    onPromptClick = onInputChange,
                 )
             }
         } else {
@@ -142,23 +141,21 @@ fun ChatScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                items(chatState.messages) { message ->
-                    MessageBubble(
-                        text = message.text,
-                        isUser = message.isUser
-                    )
+                items(uiState.messages) { message ->
+                    MessageBubble(text = message.text, isUser = message.isUser)
                 }
             }
         }
     }
 
-    if (chatState.showModelSheet) {
+    if (uiState.showModelSheet) {
         ModelBottomSheet(
-            selectedModel = chatState.selectedModel,
-            onModelSelected = { model -> viewModel.onModelSelected(model) },
-            onDismiss = { viewModel.onShowModelSheet(false) }
+            models = uiState.availableModels,
+            selectedModel = uiState.selectedModel?.name.orEmpty(),
+            onModelSelected = onSelectModel,
+            onDismiss = { onShowModelSheet(false) },
         )
     }
 }

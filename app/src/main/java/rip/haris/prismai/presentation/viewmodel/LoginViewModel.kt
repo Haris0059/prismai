@@ -1,60 +1,69 @@
 package rip.haris.prismai.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import rip.haris.prismai.data.model.LoginState
+import kotlinx.coroutines.launch
+import rip.haris.prismai.data.session.SessionManager
+import rip.haris.prismai.domain.repository.UserRepository
+import rip.haris.prismai.presentation.ui.common.LoadStatus
+import rip.haris.prismai.presentation.ui.screens.login.LoginUiState
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager,
+) : ViewModel() {
 
-    private val _state = MutableStateFlow(LoginState())
-    val state: StateFlow<LoginState> = _state.asStateFlow()
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(email: String) {
-        _state.update {
-            it.copy(
-                email = email,
-                emailError = null
-            )
-        }
+        _uiState.update { it.copy(email = email, emailError = null) }
     }
 
     fun onEmailSubmit() {
-        val email = _state.value.email.trim()
-
+        val email = _uiState.value.email.trim()
         if (email.isBlank()) {
-            _state.update { it.copy(emailError = "Email cannot be empty") }
+            _uiState.update { it.copy(emailError = "Email cannot be empty") }
             return
         }
-
-        if (!isValidEmail(email)) {
-            _state.update { it.copy(emailError = "Please enter a valid email address") }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _uiState.update { it.copy(emailError = "Please enter a valid email address") }
             return
         }
-
-        if (email != VALID_EMAIL) {
-            _state.update { it.copy(emailError = "Account not found") }
-            return
+        viewModelScope.launch {
+            _uiState.update { it.copy(status = LoadStatus.Loading) }
+            runCatching { userRepository.getByEmail(email) }
+                .onSuccess { user ->
+                    if (user == null) {
+                        _uiState.update {
+                            it.copy(emailError = "Account not found", status = LoadStatus.Error("Account not found"))
+                        }
+                    } else {
+                        sessionManager.login()
+                        _uiState.update {
+                            it.copy(emailError = null, isLoggedIn = true, status = LoadStatus.Success)
+                        }
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(status = LoadStatus.Error(e.message ?: "Login failed")) }
+                }
         }
-
-        _state.update { it.copy(emailError = null, isLoggedIn = true) }
-    }
-
-    companion object {
-        private const val VALID_EMAIL = "test@haris.rip"
     }
 
     fun onGoogleSignIn() {
-        _state.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(status = LoadStatus.Loading) }
     }
 
     fun onLogout() {
-        _state.update { LoginState() }
-    }
-
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        sessionManager.logout()
+        _uiState.update { LoginUiState() }
     }
 }

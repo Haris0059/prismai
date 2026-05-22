@@ -12,8 +12,8 @@ object Routes {
     const val ARG_CHAT_ID = "chatId"
     const val ARG_TITLE = "title"
 
-    const val CHAT_DETAIL = "chat/{$ARG_CHAT_ID}?$ARG_TITLE={$ARG_TITLE}"
+    const val CHAT_DETAIL = "chatDetail/{$ARG_CHAT_ID}?$ARG_TITLE={$ARG_TITLE}"
 
-    fun chatDetail(chatId: String, title: String): String =
-        "chat/$chatId?$ARG_TITLE=${Uri.encode(title)}"
+    fun chatDetail(chatId: Long, title: String): String =
+        "chatDetail/$chatId?$ARG_TITLE=${Uri.encode(title)}"
 }

@@ -25,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import rip.haris.prismai.data.model.HardcodedData
+import rip.haris.prismai.domain.model.AiModel
 
 @Composable
 fun ModelSelectorButton(
@@ -61,6 +61,7 @@ fun ModelSelectorButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModelBottomSheet(
+    models: List<AiModel>,
     selectedModel: String,
     onModelSelected: (String) -> Unit,
     onDismiss: () -> Unit
@@ -89,7 +90,7 @@ fun ModelBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            HardcodedData.availableModels.forEach { model ->
+            models.forEach { model ->
                 val isSelected = model.name == selectedModel
                 Row(
                     modifier = Modifier

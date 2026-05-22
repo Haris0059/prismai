@@ -4,36 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import rip.haris.prismai.data.model.HardcodedData
 import rip.haris.prismai.presentation.navigation.AppNavHost
-import rip.haris.prismai.presentation.navigation.AppViewModels
 import rip.haris.prismai.presentation.navigation.Routes
 import rip.haris.prismai.presentation.theme.PrismAITheme
 import rip.haris.prismai.presentation.ui.components.DrawerContent
-import rip.haris.prismai.presentation.viewmodel.ChatHistoryViewModel
-import rip.haris.prismai.presentation.viewmodel.ChatViewModel
-import rip.haris.prismai.presentation.viewmodel.LoginViewModel
-import rip.haris.prismai.presentation.viewmodel.ProfileViewModel
-import rip.haris.prismai.presentation.viewmodel.SettingsViewModel
+import rip.haris.prismai.presentation.viewmodel.RootViewModel
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val loginViewModel = LoginViewModel()
-    private val chatViewModel = ChatViewModel()
-    private val chatHistoryViewModel = ChatHistoryViewModel()
-    private val settingsViewModel = SettingsViewModel()
-    private val profileViewModel = ProfileViewModel()
+
+    private val rootViewModel: RootViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,16 +35,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PrismAITheme {
-                val viewModels = remember {
-                    AppViewModels(
-                        login = loginViewModel,
-                        chat = chatViewModel,
-                        chatHistory = chatHistoryViewModel,
-                        settings = settingsViewModel,
-                        profile = profileViewModel,
-                    )
-                }
-
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
@@ -59,14 +42,9 @@ class MainActivity : ComponentActivity() {
                 val currentBackStack by navController.currentBackStackEntryAsState()
                 val currentRoute = currentBackStack?.destination?.route
 
-                val loginState by loginViewModel.state.collectAsState()
-                val profileState by profileViewModel.state.collectAsState()
-
-                val startDestination = remember {
-                    if (loginState.isLoggedIn) Routes.CHAT else Routes.LOGIN
-                }
-
-                val recentChats = remember { HardcodedData.sampleChats }
+                val currentUser by rootViewModel.currentUser.collectAsState()
+                val recentChats by rootViewModel.recentChats.collectAsState()
+                val isLoggedIn by rootViewModel.isLoggedIn.collectAsState()
 
                 val drawerEnabled = currentRoute != null && currentRoute != Routes.LOGIN
 
@@ -77,7 +55,7 @@ class MainActivity : ComponentActivity() {
                         DrawerContent(
                             recentChats = recentChats,
                             onNewChat = {
-                                chatViewModel.onNewChat()
+                                rootViewModel.startNewChat()
                                 navController.navigate(Routes.CHAT) {
                                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                                     launchSingleTop = true
@@ -107,16 +85,17 @@ class MainActivity : ComponentActivity() {
                                 }
                                 scope.launch { drawerState.close() }
                             },
-                            userName = profileState.savedFullName
+                            userName = currentUser?.fullName ?: "",
                         )
-                    }
+                    },
                 ) {
                     AppNavHost(
                         navController = navController,
-                        startDestination = startDestination,
-                        viewModels = viewModels,
+                        startDestination = if (isLoggedIn) Routes.CHAT else Routes.LOGIN,
                         onOpenDrawer = { scope.launch { drawerState.open() } },
                         isDrawerOpen = { drawerState.targetValue == DrawerValue.Open },
+                        onLogout = { rootViewModel.logout() },
+                        onStartNewChat = { rootViewModel.startNewChat() },
                     )
                 }
             }

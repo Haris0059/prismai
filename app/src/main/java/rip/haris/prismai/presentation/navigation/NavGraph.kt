@@ -3,43 +3,39 @@ package rip.haris.prismai.presentation.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import rip.haris.prismai.presentation.ui.screens.chat.ChatScreen
-import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryScreen
-import rip.haris.prismai.presentation.ui.screens.login.LoginScreen
-import rip.haris.prismai.presentation.ui.screens.profile.ProfileScreen
-import rip.haris.prismai.presentation.ui.screens.settings.SettingsScreen
+import rip.haris.prismai.presentation.ui.screens.chat.ChatRoute
+import rip.haris.prismai.presentation.ui.screens.chathistory.ChatHistoryRoute
+import rip.haris.prismai.presentation.ui.screens.login.LoginRoute
+import rip.haris.prismai.presentation.ui.screens.profile.ProfileRoute
+import rip.haris.prismai.presentation.ui.screens.settings.SettingsRoute
 
 private const val SLIDE_MS = 300
 
 fun NavGraphBuilder.appNavGraph(
     navController: NavHostController,
-    viewModels: AppViewModels,
     onOpenDrawer: () -> Unit,
     isDrawerOpen: () -> Boolean,
+    onLogout: () -> Unit,
+    onStartNewChat: () -> Unit,
 ) {
     composable(
         route = Routes.LOGIN,
         enterTransition = { slideInHorizontally(tween(SLIDE_MS)) { it } },
         exitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { -it } },
     ) {
-        val loginState by viewModels.login.state.collectAsState()
-        LaunchedEffect(loginState.isLoggedIn) {
-            if (loginState.isLoggedIn) {
+        LoginRoute(
+            onLoggedIn = {
                 navController.navigate(Routes.CHAT) {
                     popUpTo(Routes.LOGIN) { inclusive = true }
                     launchSingleTop = true
                 }
-            }
-        }
-        LoginScreen(viewModel = viewModels.login)
+            },
+        )
     }
 
     composable(
@@ -49,8 +45,7 @@ fun NavGraphBuilder.appNavGraph(
         popEnterTransition = { slideInHorizontally(tween(SLIDE_MS)) { -it } },
         popExitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { it } },
     ) {
-        ChatScreen(
-            viewModel = viewModels.chat,
+        ChatRoute(
             onOpenDrawer = onOpenDrawer,
             isDrawerOpen = isDrawerOpen(),
         )
@@ -69,14 +64,8 @@ fun NavGraphBuilder.appNavGraph(
         exitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { -it } },
         popEnterTransition = { slideInHorizontally(tween(SLIDE_MS)) { -it } },
         popExitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { it } },
-    ) { backStackEntry ->
-        val chatId = backStackEntry.arguments?.getString(Routes.ARG_CHAT_ID).orEmpty()
-        val title = backStackEntry.arguments?.getString(Routes.ARG_TITLE).orEmpty()
-        LaunchedEffect(chatId) {
-            viewModels.chat.loadChat(chatId, title)
-        }
-        ChatScreen(
-            viewModel = viewModels.chat,
+    ) {
+        ChatRoute(
             onOpenDrawer = onOpenDrawer,
             isDrawerOpen = isDrawerOpen(),
         )
@@ -89,11 +78,10 @@ fun NavGraphBuilder.appNavGraph(
         popEnterTransition = { slideInHorizontally(tween(SLIDE_MS)) { -it } },
         popExitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { it } },
     ) {
-        ChatHistoryScreen(
-            viewModel = viewModels.chatHistory,
+        ChatHistoryRoute(
             onOpenDrawer = onOpenDrawer,
             onNewChat = {
-                viewModels.chat.onNewChat()
+                onStartNewChat()
                 navController.navigate(Routes.CHAT) {
                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                     launchSingleTop = true
@@ -116,11 +104,10 @@ fun NavGraphBuilder.appNavGraph(
         popEnterTransition = { slideInHorizontally(tween(SLIDE_MS)) { -it } },
         popExitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { it } },
     ) {
-        SettingsScreen(
-            viewModel = viewModels.settings,
+        SettingsRoute(
             onOpenDrawer = onOpenDrawer,
             onLogout = {
-                viewModels.login.onLogout()
+                onLogout()
                 navController.navigate(Routes.LOGIN) {
                     popUpTo(navController.graph.id) { inclusive = true }
                     launchSingleTop = true
@@ -137,9 +124,6 @@ fun NavGraphBuilder.appNavGraph(
         popEnterTransition = { slideInHorizontally(tween(SLIDE_MS)) { -it } },
         popExitTransition = { slideOutHorizontally(tween(SLIDE_MS)) { it } },
     ) {
-        ProfileScreen(
-            viewModel = viewModels.profile,
-            onBack = { navController.popBackStack() },
-        )
+        ProfileRoute(onBack = { navController.popBackStack() })
     }
 }
