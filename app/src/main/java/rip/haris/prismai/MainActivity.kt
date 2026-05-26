@@ -17,11 +17,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import rip.haris.prismai.presentation.navigation.AppNavHost
-import rip.haris.prismai.presentation.navigation.Routes
-import rip.haris.prismai.presentation.theme.PrismAITheme
-import rip.haris.prismai.presentation.ui.components.DrawerContent
-import rip.haris.prismai.presentation.viewmodel.RootViewModel
+import rip.haris.prismai.ui.navigation.AppNavHost
+import rip.haris.prismai.ui.navigation.Routes
+import rip.haris.prismai.ui.theme.PrismAITheme
+import rip.haris.prismai.ui.common.DrawerContent
+import rip.haris.prismai.ui.RootViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

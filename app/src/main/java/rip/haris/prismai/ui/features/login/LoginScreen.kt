@@ -1,0 +1,95 @@
+package rip.haris.prismai.ui.features.login
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import rip.haris.prismai.ui.features.login.components.EmailInputField
+import rip.haris.prismai.ui.features.login.components.GoogleSignInButton
+import rip.haris.prismai.ui.features.login.components.OrDivider
+import rip.haris.prismai.ui.features.login.components.TermsText
+
+@Composable
+fun LoginScreen(
+    uiState: LoginUiState,
+    onEmailChange: (String) -> Unit,
+    onEmailSubmit: () -> Unit,
+    onGoogleSignIn: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(top = 64.dp),
+        ) {
+            Text(
+                text = "PrismAI",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "Do your best work\nwith PrismAI",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = 40.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            GoogleSignInButton(onClick = onGoogleSignIn)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            OrDivider()
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            EmailInputField(
+                email = uiState.email,
+                onEmailChange = onEmailChange,
+                onSubmit = onEmailSubmit,
+                errorMessage = uiState.emailError,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            TermsText(modifier = Modifier.padding(horizontal = 8.dp))
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = "PRISMAI",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 4.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
