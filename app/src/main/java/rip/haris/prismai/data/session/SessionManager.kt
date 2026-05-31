@@ -2,6 +2,7 @@ package rip.haris.prismai.data.session
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,6 +49,13 @@ class SessionManager @Inject constructor() {
             }
             Unit
         }
+
+    /** Signs in to Firebase with a Google ID token obtained via Credential Manager. */
+    suspend fun signInWithGoogle(idToken: String): Result<Unit> = runCatching {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential).await()
+        Unit
+    }
 
     fun signOut() = auth.signOut()
 }

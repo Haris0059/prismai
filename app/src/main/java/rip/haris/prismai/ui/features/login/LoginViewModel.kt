@@ -73,6 +73,23 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    /** Called with the Google ID token retrieved by the UI via Credential Manager. */
+    fun onGoogleIdToken(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(status = LoadStatus.Loading) }
+            sessionManager.signInWithGoogle(idToken)
+                .onSuccess { _uiState.update { it.copy(isLoggedIn = true, status = LoadStatus.Success) } }
+                .onFailure { e ->
+                    _uiState.update { it.copy(status = LoadStatus.Error(e.message ?: "Google sign-in failed")) }
+                }
+        }
+    }
+
+    /** Called when the Credential Manager flow fails before we get a token. */
+    fun onGoogleSignInError(message: String) {
+        _uiState.update { it.copy(status = LoadStatus.Error(message)) }
+    }
+
     private fun authErrorMessage(e: Throwable): String = when (e) {
         is FirebaseAuthWeakPasswordException -> "Password is too weak"
         is FirebaseAuthInvalidCredentialsException -> "Invalid email or password"
