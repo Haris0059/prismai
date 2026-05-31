@@ -14,10 +14,12 @@ import retrofit2.HttpException
 import rip.haris.prismai.domain.model.Conversation
 import rip.haris.prismai.domain.repository.ConversationRepository
 import rip.haris.prismai.ui.common.LoadStatus
+import rip.haris.prismai.ui.common.SnackbarController
 
 @HiltViewModel
 class ChatHistoryViewModel @Inject constructor(
     private val conversationRepository: ConversationRepository,
+    private val snackbar: SnackbarController,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatHistoryUiState(status = LoadStatus.Loading))
@@ -64,7 +66,7 @@ class ChatHistoryViewModel @Inject constructor(
             _uiState.update { it.copy(renameTarget = null, renameText = "") }
             runCatching { conversationRepository.rename(target.id, newTitle) }
                 .onSuccess { refresh() }
-                .onFailure { e -> _uiState.update { it.copy(status = LoadStatus.Error(e.toMessage())) } }
+                .onFailure { e -> snackbar.show(e.toMessage()) }
         }
     }
 
@@ -72,7 +74,7 @@ class ChatHistoryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { conversationRepository.delete(conversation.id) }
                 .onSuccess { refresh() }
-                .onFailure { e -> _uiState.update { it.copy(status = LoadStatus.Error(e.toMessage())) } }
+                .onFailure { e -> snackbar.show(e.toMessage()) }
         }
     }
 

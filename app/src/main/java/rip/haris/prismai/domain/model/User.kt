@@ -7,4 +7,5 @@ data class User(
     val displayName: String,
     val isPro: Boolean,
     val hapticOn: Boolean,
+    val preferences: String = "",
 )
