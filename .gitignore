@@ -1,15 +1,21 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+.idea/
+.kotlin/
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local docs / planning notes (kept out of version control)
+CLAUDE.md
+ASSIGNMENT*.md
+PR_ASSIGNMENT*.md
+STRUCTURE.md
+README_STRUCTURE.md
+
+# Claude Code workspace
+.claude/
