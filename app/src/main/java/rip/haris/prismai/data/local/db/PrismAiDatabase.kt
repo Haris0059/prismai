@@ -24,7 +24,7 @@ import rip.haris.prismai.data.local.entity.UserPreferenceEntity
         UserPreferenceEntity::class,
         GreetingEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class PrismAiDatabase : RoomDatabase() {

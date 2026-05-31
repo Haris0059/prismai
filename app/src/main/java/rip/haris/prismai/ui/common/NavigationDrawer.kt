@@ -34,13 +34,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import rip.haris.prismai.domain.model.Chat
+import rip.haris.prismai.domain.model.Conversation
 
 @Composable
 fun DrawerContent(
-    recentChats: List<Chat>,
+    recentChats: List<Conversation>,
     onNewChat: () -> Unit,
-    onRecentChatClick: (id: Long, title: String) -> Unit,
+    onRecentChatClick: (id: String, title: String) -> Unit,
     onChatsClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     userName: String = "Haris",

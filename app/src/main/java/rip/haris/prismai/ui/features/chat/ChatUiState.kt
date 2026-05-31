@@ -5,7 +5,7 @@ import rip.haris.prismai.domain.model.Message
 import rip.haris.prismai.ui.common.LoadStatus
 
 data class ChatUiState(
-    val chatId: Long? = null,
+    val chatId: String? = null,
     val messages: List<Message> = emptyList(),
     val inputText: String = "",
     val selectedModel: AiModel? = null,
@@ -16,7 +16,7 @@ data class ChatUiState(
     val status: LoadStatus = LoadStatus.Init,
 ) {
     val canSend: Boolean
-        get() = inputText.isNotBlank() && selectedModel != null
+        get() = inputText.isNotBlank()
 
     companion object {
         val DEFAULT_SUGGESTED_PROMPTS = listOf(

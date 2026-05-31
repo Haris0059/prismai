@@ -5,37 +5,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import rip.haris.prismai.data.session.NewChatEvent
-import rip.haris.prismai.domain.model.Chat
 import rip.haris.prismai.domain.model.Message
 import rip.haris.prismai.domain.repository.AiModelRepository
-import rip.haris.prismai.domain.repository.ChatRepository
+import rip.haris.prismai.domain.repository.ConversationRepository
 import rip.haris.prismai.domain.repository.GreetingRepository
-import rip.haris.prismai.domain.repository.MessageRepository
-import rip.haris.prismai.domain.repository.UserRepository
-import rip.haris.prismai.ui.navigation.Routes
 import rip.haris.prismai.ui.common.LoadStatus
-import rip.haris.prismai.ui.features.chat.ChatUiState
+import rip.haris.prismai.ui.navigation.Routes
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val chatRepository: ChatRepository,
-    private val messageRepository: MessageRepository,
+    private val conversationRepository: ConversationRepository,
     private val aiModelRepository: AiModelRepository,
     private val greetingRepository: GreetingRepository,
-    private val userRepository: UserRepository,
     private val newChatEvent: NewChatEvent,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -43,9 +33,9 @@ class ChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ChatUiState(status = LoadStatus.Loading))
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private val currentChatId = MutableStateFlow(
-        savedStateHandle.get<String>(Routes.ARG_CHAT_ID)?.toLongOrNull()
-    )
+    // Server conversation id (UUID) for the current thread; null for a brand-new chat.
+    private var conversationId: String? = null
+    private var loadJob: Job? = null
 
     init {
         // Load a random greeting once on creation.
@@ -61,24 +51,42 @@ class ChatViewModel @Inject constructor(
                     state.copy(
                         availableModels = models,
                         selectedModel = state.selectedModel ?: models.firstOrNull(),
-                        status = LoadStatus.Success,
                     )
                 }
             }
             .launchIn(viewModelScope)
 
-        // Observe messages for whichever chat is currently selected.
-        currentChatId
-            .flatMapLatest { id ->
-                if (id == null) flowOf(emptyList()) else messageRepository.observeMessages(id)
+        // React to the selected conversation. Observing the nav arg as a flow means a
+        // reused ViewModel (launchSingleTop on chatDetail) still reloads when the id changes.
+        savedStateHandle.getStateFlow<String?>(Routes.ARG_CHAT_ID, null)
+            .onEach { id ->
+                conversationId = id
+                if (id.isNullOrBlank()) {
+                    _uiState.update { it.copy(chatId = null, messages = emptyList(), status = LoadStatus.Success) }
+                } else {
+                    loadConversation(id)
+                }
             }
-            .onEach { messages -> _uiState.update { it.copy(messages = messages, chatId = currentChatId.value) } }
             .launchIn(viewModelScope)
 
-        // Reset to a fresh chat (new greeting, no chatId) whenever the drawer fires "New chat".
+        // Reset to a fresh chat whenever the drawer / FAB fires "New chat".
         newChatEvent.events
             .onEach { onNewChat() }
             .launchIn(viewModelScope)
+    }
+
+    private fun loadConversation(id: String) {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.update { it.copy(messages = emptyList(), status = LoadStatus.Loading) }
+            runCatching { conversationRepository.getMessages(id) }
+                .onSuccess { messages ->
+                    _uiState.update { it.copy(messages = messages, chatId = id, status = LoadStatus.Success) }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(status = LoadStatus.Error(e.message ?: "Failed to load chat")) }
+                }
+        }
     }
 
     fun onInputChange(text: String) {
@@ -97,48 +105,61 @@ class ChatViewModel @Inject constructor(
     fun onSendMessage() {
         val text = _uiState.value.inputText.trim()
         if (text.isBlank()) return
-        viewModelScope.launch {
-            val user = userRepository.observeCurrentUser().first { it != null } ?: return@launch
-            val modelId = _uiState.value.selectedModel?.id
-            val now = System.currentTimeMillis()
 
-            val chatId = currentChatId.value ?: chatRepository.createChat(
-                Chat(
-                    userId = user.id,
-                    modelId = modelId,
-                    title = text.take(60),
-                    createdAt = now,
-                    updatedAt = now,
-                )
-            ).also { newId -> currentChatId.value = newId }
+        val (provider, model) = resolveProviderModel(_uiState.value.selectedModel?.name)
+        val now = System.currentTimeMillis()
 
-            _uiState.update { it.copy(inputText = "") }
-
-            messageRepository.insert(Message(chatId = chatId, text = text, isUser = true, createdAt = now))
-            chatRepository.touch(chatId, now)
-
-            // Simulated AI response — networking comes in a later assignment.
-            val replyAt = System.currentTimeMillis()
-            messageRepository.insert(
-                Message(
-                    chatId = chatId,
-                    text = "This is a simulated AI response. In a real app, this would come from an API.",
-                    isUser = false,
-                    createdAt = replyAt,
-                )
+        // Optimistically show the user's message and clear the input.
+        _uiState.update {
+            it.copy(
+                messages = it.messages + Message(chatId = 0, text = text, isUser = true, createdAt = now),
+                inputText = "",
             )
-            chatRepository.touch(chatId, replyAt)
         }
-    }
 
-    fun onNewChat() {
-        currentChatId.value = null
         viewModelScope.launch {
-            val greeting = greetingRepository.getRandom()?.text.orEmpty()
-            _uiState.update {
-                it.copy(chatId = null, messages = emptyList(), inputText = "", greeting = greeting)
+            runCatching {
+                conversationRepository.sendMessage(provider, model, text, conversationId)
+            }.onSuccess { reply ->
+                conversationId = reply.conversationId
+                val replyMsg = Message(
+                    chatId = 0,
+                    text = reply.text.ifBlank { "(The assistant returned no text.)" },
+                    isUser = false,
+                    createdAt = System.currentTimeMillis(),
+                )
+                _uiState.update { it.copy(messages = it.messages + replyMsg, chatId = reply.conversationId) }
+            }.onFailure { e ->
+                val errMsg = Message(
+                    chatId = 0,
+                    text = "⚠️ Couldn't reach the server: ${e.message ?: "unknown error"}",
+                    isUser = false,
+                    createdAt = System.currentTimeMillis(),
+                )
+                _uiState.update { it.copy(messages = it.messages + errMsg) }
             }
         }
     }
 
+    fun onNewChat() {
+        conversationId = null
+        viewModelScope.launch {
+            val greeting = greetingRepository.getRandom()?.text.orEmpty()
+            _uiState.update {
+                it.copy(chatId = null, messages = emptyList(), inputText = "", greeting = greeting, status = LoadStatus.Success)
+            }
+        }
+    }
+
+    /** Maps a display model name to the backend provider + model identifier. */
+    private fun resolveProviderModel(modelName: String?): Pair<String, String> = when {
+        modelName == null -> DEFAULT_PROVIDER_MODEL
+        modelName.contains("GPT", ignoreCase = true) -> "openai" to "gpt-4o-mini"
+        modelName.contains("Gemini", ignoreCase = true) -> "gemini" to "gemini-1.5-pro"
+        else -> DEFAULT_PROVIDER_MODEL
+    }
+
+    private companion object {
+        val DEFAULT_PROVIDER_MODEL = "anthropic" to "claude-haiku-4-5-20251001"
+    }
 }

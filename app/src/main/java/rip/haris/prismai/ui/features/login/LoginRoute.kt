@@ -1,11 +1,11 @@
 package rip.haris.prismai.ui.features.login
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import rip.haris.prismai.ui.features.login.LoginViewModel
 
 @Composable
 fun LoginRoute(
@@ -15,15 +15,17 @@ fun LoginRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    if (uiState.isLoggedIn) {
-        onLoggedIn()
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) onLoggedIn()
     }
 
     LoginScreen(
         uiState = uiState,
         onEmailChange = viewModel::onEmailChange,
-        onEmailSubmit = viewModel::onEmailSubmit,
-        onGoogleSignIn = viewModel::onGoogleSignIn,
+        onPasswordChange = viewModel::onPasswordChange,
+        onSubmit = viewModel::onSubmit,
+        onToggleMode = viewModel::onToggleMode,
+        onGoogleSignIn = {},
         modifier = modifier,
     )
 }

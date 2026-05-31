@@ -14,6 +14,9 @@ interface ChatDao {
     @Query("SELECT * FROM chats WHERE userId = :userId ORDER BY updatedAt DESC")
     fun observeChats(userId: Long): Flow<List<ChatEntity>>
 
+    @Query("SELECT COUNT(*) FROM chats")
+    suspend fun count(): Int
+
     @Query("SELECT * FROM chats WHERE id = :id")
     suspend fun getById(id: Long): ChatEntity?
 

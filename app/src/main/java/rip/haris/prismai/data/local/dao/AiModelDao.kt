@@ -14,6 +14,9 @@ interface AiModelDao {
     @Query("SELECT * FROM ai_models ORDER BY id ASC")
     fun observeAll(): Flow<List<AiModelEntity>>
 
+    @Query("SELECT COUNT(*) FROM ai_models")
+    suspend fun count(): Int
+
     @Query("SELECT * FROM ai_models WHERE id = :id")
     suspend fun getById(id: Long): AiModelEntity?
 

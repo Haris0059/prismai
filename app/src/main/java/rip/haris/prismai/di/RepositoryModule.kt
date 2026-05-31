@@ -7,12 +7,14 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import rip.haris.prismai.data.repository.AiModelRepositoryImpl
 import rip.haris.prismai.data.repository.ChatRepositoryImpl
+import rip.haris.prismai.data.repository.ConversationRepositoryImpl
 import rip.haris.prismai.data.repository.GreetingRepositoryImpl
 import rip.haris.prismai.data.repository.MessageRepositoryImpl
 import rip.haris.prismai.data.repository.UserPreferenceRepositoryImpl
 import rip.haris.prismai.data.repository.UserRepositoryImpl
 import rip.haris.prismai.domain.repository.AiModelRepository
 import rip.haris.prismai.domain.repository.ChatRepository
+import rip.haris.prismai.domain.repository.ConversationRepository
 import rip.haris.prismai.domain.repository.GreetingRepository
 import rip.haris.prismai.domain.repository.MessageRepository
 import rip.haris.prismai.domain.repository.UserPreferenceRepository
@@ -29,6 +31,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindChatRepository(impl: ChatRepositoryImpl): ChatRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindConversationRepository(impl: ConversationRepositoryImpl): ConversationRepository
 
     @Binds
     @Singleton

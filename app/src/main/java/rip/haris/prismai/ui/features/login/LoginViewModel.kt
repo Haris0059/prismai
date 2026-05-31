@@ -2,6 +2,10 @@ package rip.haris.prismai.ui.features.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,13 +14,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import rip.haris.prismai.data.session.SessionManager
-import rip.haris.prismai.domain.repository.UserRepository
 import rip.haris.prismai.ui.common.LoadStatus
-import rip.haris.prismai.ui.features.login.LoginUiState
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userRepository: UserRepository,
     private val sessionManager: SessionManager,
 ) : ViewModel() {
 
@@ -24,46 +25,59 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(email: String) {
-        _uiState.update { it.copy(email = email, emailError = null) }
+        _uiState.update { it.copy(email = email, emailError = null, status = LoadStatus.Init) }
     }
 
-    fun onEmailSubmit() {
-        val email = _uiState.value.email.trim()
-        if (email.isBlank()) {
-            _uiState.update { it.copy(emailError = "Email cannot be empty") }
-            return
+    fun onPasswordChange(password: String) {
+        _uiState.update { it.copy(password = password, passwordError = null, status = LoadStatus.Init) }
+    }
+
+    fun onToggleMode() {
+        _uiState.update {
+            it.copy(
+                mode = if (it.mode == AuthMode.SIGN_IN) AuthMode.SIGN_UP else AuthMode.SIGN_IN,
+                emailError = null,
+                passwordError = null,
+                status = LoadStatus.Init,
+            )
         }
+    }
+
+    fun onSubmit() {
+        val state = _uiState.value
+        val email = state.email.trim()
+        val password = state.password
+
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _uiState.update { it.copy(emailError = "Please enter a valid email address") }
             return
         }
+        if (password.length < 6) {
+            _uiState.update { it.copy(passwordError = "Password must be at least 6 characters") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(status = LoadStatus.Loading) }
-            runCatching { userRepository.getByEmail(email) }
-                .onSuccess { user ->
-                    if (user == null) {
-                        _uiState.update {
-                            it.copy(emailError = "Account not found", status = LoadStatus.Error("Account not found"))
-                        }
-                    } else {
-                        sessionManager.login()
-                        _uiState.update {
-                            it.copy(emailError = null, isLoggedIn = true, status = LoadStatus.Success)
-                        }
-                    }
+            val result = when (state.mode) {
+                AuthMode.SIGN_IN -> sessionManager.signIn(email, password)
+                AuthMode.SIGN_UP -> sessionManager.signUp(email, password, displayName = email.substringBefore("@"))
+            }
+            result
+                .onSuccess {
+                    _uiState.update { it.copy(isLoggedIn = true, status = LoadStatus.Success) }
                 }
                 .onFailure { e ->
-                    _uiState.update { it.copy(status = LoadStatus.Error(e.message ?: "Login failed")) }
+                    _uiState.update { it.copy(status = LoadStatus.Error(authErrorMessage(e))) }
                 }
         }
     }
 
-    fun onGoogleSignIn() {
-        _uiState.update { it.copy(status = LoadStatus.Loading) }
-    }
-
-    fun onLogout() {
-        sessionManager.logout()
-        _uiState.update { LoginUiState() }
+    private fun authErrorMessage(e: Throwable): String = when (e) {
+        is FirebaseAuthWeakPasswordException -> "Password is too weak"
+        is FirebaseAuthInvalidCredentialsException -> "Invalid email or password"
+        is FirebaseAuthInvalidUserException -> "No account found for this email"
+        is FirebaseAuthUserCollisionException -> "An account already exists for this email"
+        else -> e.message ?: "Authentication failed"
     }
 }

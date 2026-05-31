@@ -11,13 +11,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import rip.haris.prismai.domain.model.Conversation
 import rip.haris.prismai.ui.features.chathistory.components.ChatHistoryListItem
 import rip.haris.prismai.ui.features.chathistory.components.ChatSearchBar
 
@@ -36,7 +40,12 @@ fun ChatHistoryScreen(
     onSearchQueryChange: (String) -> Unit,
     onOpenDrawer: () -> Unit,
     onNewChat: () -> Unit,
-    onChatClick: (id: Long, title: String) -> Unit,
+    onChatClick: (Conversation) -> Unit,
+    onRenameClick: (Conversation) -> Unit,
+    onRenameTextChange: (String) -> Unit,
+    onRenameConfirm: () -> Unit,
+    onRenameDismiss: () -> Unit,
+    onDelete: (Conversation) -> Unit,
     isDrawerOpen: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
@@ -44,6 +53,23 @@ fun ChatHistoryScreen(
 
     LaunchedEffect(isDrawerOpen) {
         if (isDrawerOpen) focusManager.clearFocus()
+    }
+
+    uiState.renameTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = onRenameDismiss,
+            title = { Text("Rename chat") },
+            text = {
+                OutlinedTextField(
+                    value = uiState.renameText,
+                    onValueChange = onRenameTextChange,
+                    singleLine = true,
+                    label = { Text("Title") },
+                )
+            },
+            confirmButton = { TextButton(onClick = onRenameConfirm) { Text("Save") } },
+            dismissButton = { TextButton(onClick = onRenameDismiss) { Text("Cancel") } },
+        )
     }
 
     Scaffold(
@@ -103,22 +129,37 @@ fun ChatHistoryScreen(
                 )
             }
 
-            if (uiState.isEmpty) {
+            uiState.errorMessage?.let { message ->
                 item {
                     Text(
-                        text = if (uiState.searchQuery.isBlank()) "No chats yet" else "No chats found",
+                        text = message,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 24.dp),
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 16.dp),
                     )
                 }
-            } else {
-                items(uiState.filteredChats) { chat ->
-                    ChatHistoryListItem(
-                        title = chat.title,
-                        timeAgo = formatTimeAgo(chat.updatedAt),
-                        onClick = { onChatClick(chat.id, chat.title) },
-                    )
+            }
+
+            if (uiState.errorMessage == null) {
+                if (uiState.isEmpty && !uiState.isLoading) {
+                    item {
+                        Text(
+                            text = if (uiState.searchQuery.isBlank()) "No chats yet" else "No chats found",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 24.dp),
+                        )
+                    }
+                } else {
+                    items(uiState.filteredChats, key = { it.id }) { conversation ->
+                        ChatHistoryListItem(
+                            title = conversation.title,
+                            timeAgo = formatTimeAgo(conversation.updatedAtMillis),
+                            onClick = { onChatClick(conversation) },
+                            onRename = { onRenameClick(conversation) },
+                            onDelete = { onDelete(conversation) },
+                        )
+                    }
                 }
             }
         }

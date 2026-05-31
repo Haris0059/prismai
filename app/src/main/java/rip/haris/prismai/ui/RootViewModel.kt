@@ -4,42 +4,53 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import rip.haris.prismai.data.session.NewChatEvent
 import rip.haris.prismai.data.session.SessionManager
-import rip.haris.prismai.domain.model.Chat
+import rip.haris.prismai.domain.model.Conversation
 import rip.haris.prismai.domain.model.User
-import rip.haris.prismai.domain.repository.ChatRepository
+import rip.haris.prismai.domain.repository.ConversationRepository
 import rip.haris.prismai.domain.repository.UserRepository
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RootViewModel @Inject constructor(
     userRepository: UserRepository,
-    chatRepository: ChatRepository,
+    private val conversationRepository: ConversationRepository,
     private val sessionManager: SessionManager,
     private val newChatEvent: NewChatEvent,
 ) : ViewModel() {
 
     val isLoggedIn: StateFlow<Boolean> = sessionManager.isLoggedIn
 
-    fun logout() = sessionManager.logout()
+    fun logout() = sessionManager.signOut()
 
     fun startNewChat() = newChatEvent.fire()
 
     val currentUser: StateFlow<User?> = userRepository.observeCurrentUser()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val recentChats: StateFlow<List<Chat>> = userRepository.observeCurrentUser()
-        .flatMapLatest { user ->
-            if (user == null) flowOf(emptyList()) else chatRepository.observeChats(user.id)
+    private val _recentChats = MutableStateFlow<List<Conversation>>(emptyList())
+    val recentChats: StateFlow<List<Conversation>> = _recentChats.asStateFlow()
+
+    init {
+        // Load recent conversations from the backend whenever the user is signed in.
+        sessionManager.isLoggedIn
+            .onEach { loggedIn -> if (loggedIn) refreshRecents() else _recentChats.value = emptyList() }
+            .launchIn(viewModelScope)
+    }
+
+    /** Re-fetches the recent conversations (e.g. when the drawer is opened). */
+    fun refreshRecents() {
+        viewModelScope.launch {
+            runCatching { conversationRepository.getConversations() }
+                .onSuccess { _recentChats.value = it.take(11) }
         }
-        .map { it.take(11) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }
 }

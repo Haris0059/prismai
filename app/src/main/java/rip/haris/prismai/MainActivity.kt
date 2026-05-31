@@ -65,7 +65,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onRecentChatClick = { id, title ->
                                 navController.navigate(Routes.chatDetail(id, title)) {
-                                    launchSingleTop = true
+                                    // Replace any currently-open conversation so a fresh
+                                    // ChatViewModel is created for the newly selected one.
+                                    popUpTo(Routes.CHAT_DETAIL) { inclusive = true }
                                 }
                                 scope.launch { drawerState.close() }
                             },
@@ -92,7 +94,10 @@ class MainActivity : ComponentActivity() {
                     AppNavHost(
                         navController = navController,
                         startDestination = if (isLoggedIn) Routes.CHAT else Routes.LOGIN,
-                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                        onOpenDrawer = {
+                            rootViewModel.refreshRecents()
+                            scope.launch { drawerState.open() }
+                        },
                         isDrawerOpen = { drawerState.targetValue == DrawerValue.Open },
                         onLogout = { rootViewModel.logout() },
                         onStartNewChat = { rootViewModel.startNewChat() },

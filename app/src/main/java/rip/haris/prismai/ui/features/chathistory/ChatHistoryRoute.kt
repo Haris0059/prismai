@@ -5,13 +5,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import rip.haris.prismai.ui.features.chathistory.ChatHistoryViewModel
 
 @Composable
 fun ChatHistoryRoute(
     onOpenDrawer: () -> Unit,
     onNewChat: () -> Unit,
-    onChatClick: (id: Long, title: String) -> Unit,
+    onChatClick: (id: String, title: String) -> Unit,
     isDrawerOpen: Boolean,
     modifier: Modifier = Modifier,
     viewModel: ChatHistoryViewModel = hiltViewModel(),
@@ -22,7 +21,12 @@ fun ChatHistoryRoute(
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onOpenDrawer = onOpenDrawer,
         onNewChat = onNewChat,
-        onChatClick = onChatClick,
+        onChatClick = { conversation -> onChatClick(conversation.id, conversation.title) },
+        onRenameClick = viewModel::onRenameClick,
+        onRenameTextChange = viewModel::onRenameTextChange,
+        onRenameConfirm = viewModel::onRenameConfirm,
+        onRenameDismiss = viewModel::onRenameDismiss,
+        onDelete = viewModel::onDelete,
         isDrawerOpen = isDrawerOpen,
         modifier = modifier,
     )

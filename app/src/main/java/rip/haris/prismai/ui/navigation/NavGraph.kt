@@ -90,7 +90,9 @@ fun NavGraphBuilder.appNavGraph(
             },
             onChatClick = { id, title ->
                 navController.navigate(Routes.chatDetail(id, title)) {
-                    launchSingleTop = true
+                    // Replace any currently-open conversation so a fresh ChatViewModel
+                    // is created for the newly selected one.
+                    popUpTo(Routes.CHAT_DETAIL) { inclusive = true }
                 }
             },
             isDrawerOpen = isDrawerOpen(),
