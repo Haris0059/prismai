@@ -14,8 +14,8 @@ import rip.haris.prismai.domain.model.Message
 import rip.haris.prismai.domain.model.User
 import rip.haris.prismai.domain.model.UserPreference
 
-fun UserEntity.toDomain() = User(id, email, password, fullName, displayName, isPro, hapticOn)
-fun User.toEntity() = UserEntity(id, email, password, fullName, displayName, isPro, hapticOn)
+fun UserEntity.toDomain() = User(id, email, fullName, displayName, isPro, hapticOn)
+fun User.toEntity() = UserEntity(id, email, fullName, displayName, isPro, hapticOn)
 
 fun AiModelEntity.toDomain() = AiModel(id, name, description)
 fun AiModel.toEntity() = AiModelEntity(id, name, description)

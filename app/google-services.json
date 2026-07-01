@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "644251352624",
+    "project_id": "prismai-3ea58",
+    "storage_bucket": "prismai-3ea58.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:644251352624:android:472ac62979be8d4e46f7f5",
+        "android_client_info": {
+          "package_name": "rip.haris.prismai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "644251352624-gi3p79btpj93bltfb1137b68irfga3m0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "rip.haris.prismai",
+            "certificate_hash": "c60131b71a0e7dae0c36f39f26d2f7237ea7897f"
+          }
+        },
+        {
+          "client_id": "644251352624-ihauibq71i4dfbti5jp0tbuiompma30f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6V_pd5j6lSETUpB28fj7fG5yeyuggQmg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "644251352624-ihauibq71i4dfbti5jp0tbuiompma30f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

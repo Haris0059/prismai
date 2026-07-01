@@ -14,6 +14,9 @@ interface GreetingDao {
     @Query("SELECT * FROM greetings")
     fun observeAll(): Flow<List<GreetingEntity>>
 
+    @Query("SELECT COUNT(*) FROM greetings")
+    suspend fun count(): Int
+
     @Query("SELECT * FROM greetings ORDER BY RANDOM() LIMIT 1")
     suspend fun getRandom(): GreetingEntity?
 

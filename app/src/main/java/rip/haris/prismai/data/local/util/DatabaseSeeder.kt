@@ -23,18 +23,28 @@ class DatabaseSeeder(
     private val chatDaoProvider: () -> ChatDao,
 ) : RoomDatabase.Callback() {
 
-    override fun onCreate(db: SupportSQLiteDatabase) {
-        super.onCreate(db)
+    // Runs on every database open. Each block is guarded by a count so it only
+    // seeds when its table is empty — idempotent and self-healing regardless of
+    // how the DB got into its current state (fresh install, destructive migration,
+    // or an already-migrated empty DB).
+    override fun onOpen(db: SupportSQLiteDatabase) {
+        super.onOpen(db)
         scope.launch(Dispatchers.IO) {
             val userDao = userDaoProvider()
             val aiModelDao = aiModelDaoProvider()
             val greetingDao = greetingDaoProvider()
             val chatDao = chatDaoProvider()
 
-            val userId = userDao.insert(
+            if (aiModelDao.count() == 0) {
+                aiModelDao.insertAll(DefaultSeedData.aiModels)
+            }
+            if (greetingDao.count() == 0) {
+                greetingDao.insertAll(DefaultSeedData.greetings)
+            }
+
+            val userId = userDao.getByEmail("test@haris.rip")?.id ?: userDao.insert(
                 UserEntity(
                     email = "test@haris.rip",
-                    password = "test123",
                     fullName = "Haris Skeledzija",
                     displayName = "Haris",
                     isPro = false,
@@ -42,22 +52,21 @@ class DatabaseSeeder(
                 )
             )
 
-            aiModelDao.insertAll(DefaultSeedData.aiModels)
-            greetingDao.insertAll(DefaultSeedData.greetings)
-
-            val defaultModelId = aiModelDao.getByName("Opus 4.6")?.id
-            val now = System.currentTimeMillis()
-            val chats = DefaultSeedData.sampleChatTitles.mapIndexed { index, title ->
-                val offset = (index + 1) * 60_000L
-                ChatEntity(
-                    userId = userId,
-                    modelId = defaultModelId,
-                    title = title,
-                    createdAt = now - offset,
-                    updatedAt = now - offset,
-                )
+            if (chatDao.count() == 0) {
+                val defaultModelId = aiModelDao.getByName("Opus 4.6")?.id
+                val now = System.currentTimeMillis()
+                val chats = DefaultSeedData.sampleChatTitles.mapIndexed { index, title ->
+                    val offset = (index + 1) * 60_000L
+                    ChatEntity(
+                        userId = userId,
+                        modelId = defaultModelId,
+                        title = title,
+                        createdAt = now - offset,
+                        updatedAt = now - offset,
+                    )
+                }
+                chatDao.insertAll(chats)
             }
-            chatDao.insertAll(chats)
         }
     }
 }

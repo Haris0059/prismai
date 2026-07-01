@@ -5,28 +5,43 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.launch
-import rip.haris.prismai.presentation.navigation.AppNavHost
-import rip.haris.prismai.presentation.navigation.Routes
-import rip.haris.prismai.presentation.theme.PrismAITheme
-import rip.haris.prismai.presentation.ui.components.DrawerContent
-import rip.haris.prismai.presentation.viewmodel.RootViewModel
+import rip.haris.prismai.ui.navigation.AppNavHost
+import rip.haris.prismai.ui.navigation.Routes
+import rip.haris.prismai.ui.theme.PrismAITheme
+import rip.haris.prismai.ui.common.DrawerContent
+import rip.haris.prismai.ui.common.SnackbarController
+import rip.haris.prismai.ui.RootViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val rootViewModel: RootViewModel by viewModels()
+
+    @Inject
+    lateinit var snackbarController: SnackbarController
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +63,14 @@ class MainActivity : ComponentActivity() {
 
                 val drawerEnabled = currentRoute != null && currentRoute != Routes.LOGIN
 
+                val snackbarHostState = remember { SnackbarHostState() }
+                LaunchedEffect(Unit) {
+                    snackbarController.messages.collect { message ->
+                        snackbarHostState.showSnackbar(message)
+                    }
+                }
+
+                Box(modifier = Modifier.fillMaxSize()) {
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     gesturesEnabled = drawerEnabled,
@@ -65,7 +88,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onRecentChatClick = { id, title ->
                                 navController.navigate(Routes.chatDetail(id, title)) {
-                                    launchSingleTop = true
+                                    // Replace any currently-open conversation so a fresh
+                                    // ChatViewModel is created for the newly selected one.
+                                    popUpTo(Routes.CHAT_DETAIL) { inclusive = true }
                                 }
                                 scope.launch { drawerState.close() }
                             },
@@ -92,10 +117,21 @@ class MainActivity : ComponentActivity() {
                     AppNavHost(
                         navController = navController,
                         startDestination = if (isLoggedIn) Routes.CHAT else Routes.LOGIN,
-                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                        onOpenDrawer = {
+                            rootViewModel.refreshRecents()
+                            scope.launch { drawerState.open() }
+                        },
                         isDrawerOpen = { drawerState.targetValue == DrawerValue.Open },
                         onLogout = { rootViewModel.logout() },
                         onStartNewChat = { rootViewModel.startNewChat() },
+                    )
+                }
+                    SnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .imePadding(),
                     )
                 }
             }

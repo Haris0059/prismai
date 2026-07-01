@@ -1,34 +1,61 @@
 package rip.haris.prismai.data.session
 
-import android.content.Context
-import androidx.core.content.edit
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 
+/**
+ * Thin wrapper over [FirebaseAuth]. Persistent login comes for free from the SDK:
+ * [FirebaseAuth.getCurrentUser] is restored synchronously on process start, and an
+ * [FirebaseAuth.AuthStateListener] keeps the exposed flows in sync.
+ */
 @Singleton
-class SessionManager @Inject constructor(
-    @ApplicationContext context: Context,
-) {
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private val _isLoggedIn = MutableStateFlow(prefs.getBoolean(KEY_LOGGED_IN, false))
+class SessionManager @Inject constructor() {
+
+    private val auth = FirebaseAuth.getInstance()
+
+    private val _currentUser = MutableStateFlow(auth.currentUser)
+    val currentUser: StateFlow<FirebaseUser?> = _currentUser.asStateFlow()
+
+    private val _isLoggedIn = MutableStateFlow(auth.currentUser != null)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
-    fun login() {
-        prefs.edit { putBoolean(KEY_LOGGED_IN, true) }
-        _isLoggedIn.value = true
+    init {
+        auth.addAuthStateListener { firebaseAuth ->
+            _currentUser.value = firebaseAuth.currentUser
+            _isLoggedIn.value = firebaseAuth.currentUser != null
+        }
     }
 
-    fun logout() {
-        prefs.edit { putBoolean(KEY_LOGGED_IN, false) }
-        _isLoggedIn.value = false
+    suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
+        auth.signInWithEmailAndPassword(email, password).await()
+        Unit
     }
 
-    private companion object {
-        const val PREFS_NAME = "prismai_session"
-        const val KEY_LOGGED_IN = "is_logged_in"
+    suspend fun signUp(email: String, password: String, displayName: String): Result<Unit> =
+        runCatching {
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            if (displayName.isNotBlank()) {
+                result.user?.updateProfile(
+                    UserProfileChangeRequest.Builder().setDisplayName(displayName).build()
+                )?.await()
+            }
+            Unit
+        }
+
+    /** Signs in to Firebase with a Google ID token obtained via Credential Manager. */
+    suspend fun signInWithGoogle(idToken: String): Result<Unit> = runCatching {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential).await()
+        Unit
     }
+
+    fun signOut() = auth.signOut()
 }

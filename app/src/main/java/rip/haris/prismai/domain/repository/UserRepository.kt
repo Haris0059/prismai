@@ -4,10 +4,9 @@ import kotlinx.coroutines.flow.Flow
 import rip.haris.prismai.domain.model.User
 
 interface UserRepository {
+    /** Emits the signed-in user's profile, updating in realtime as the Firestore doc changes. */
     fun observeCurrentUser(): Flow<User?>
-    suspend fun getById(id: Long): User?
-    suspend fun getByEmail(email: String): User?
-    suspend fun insert(user: User): Long
+
+    /** Writes the editable profile fields back to Firestore. */
     suspend fun update(user: User)
-    suspend fun delete(user: User)
 }
